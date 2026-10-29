@@ -10,173 +10,41 @@ import {
 } from 'firebase/firestore';
 import { FirebaseConfig, SavedDraft } from '../types/procurement';
 
-const LS_FIREBASE_CONFIG_KEY = 'dpp_firebase_config_v1';
+// Konfigurasi resmi Firebase Project: yuhaba-ac5c4
+export const firebaseConfig: FirebaseConfig = {
+  apiKey: 'AIzaSyCTTHDxR3oM3o1R6QoPQleiRcyS6sL_jls',
+  authDomain: 'yuhaba-ac5c4.firebaseapp.com',
+  projectId: 'yuhaba-ac5c4',
+  storageBucket: 'yuhaba-ac5c4.firebasestorage.app',
+  messagingSenderId: '860407453726',
+  appId: '1:860407453726:web:6548b2406724e8a9fab60f',
+};
+
 const FIRESTORE_COLLECTION = 'rekap_pengadaan_dispora';
 
-let cachedDb: Firestore | null = null;
-let cachedApp: FirebaseApp | null = null;
+// Initialize Firebase App
+export const app: FirebaseApp =
+  getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-export function getStoredFirebaseConfig(): FirebaseConfig | null {
-  try {
-    const raw = localStorage.getItem(LS_FIREBASE_CONFIG_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.apiKey && parsed.projectId) {
-        return parsed as FirebaseConfig;
-      }
-    }
-  } catch {
-    // ignore
-  }
+// Initialize Cloud Firestore
+export const db: Firestore = getFirestore(app);
 
-  // Fallback to environment variables if provided
-  const envKey = import.meta.env.VITE_FIREBASE_API_KEY;
-  const envProject = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-  if (envKey && envProject) {
-    return {
-      apiKey: envKey,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-      projectId: envProject,
-      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
-    };
-  }
-
-  return null;
-}
-
-export function saveFirebaseConfig(cfg: FirebaseConfig | null): void {
-  if (!cfg) {
-    localStorage.removeItem(LS_FIREBASE_CONFIG_KEY);
-    cachedDb = null;
-    cachedApp = null;
-    return;
-  }
-  localStorage.setItem(LS_FIREBASE_CONFIG_KEY, JSON.stringify(cfg));
-  cachedDb = null;
-  cachedApp = null;
-}
-
-/**
- * Parsing snippet konfigurasi yang di-copy langsung dari Firebase Console
- * Mendukung format:
- * 1. JSON langsung: {"apiKey": "...", ...}
- * 2. JS Object: const firebaseConfig = { apiKey: "...", ... };
- */
-export function parseFirebaseConfigString(raw: string): FirebaseConfig | null {
-  if (!raw || !raw.trim()) return null;
-  const trimmed = raw.trim();
-
-  // Coba parse JSON murni
-  try {
-    const obj = JSON.parse(trimmed);
-    if (obj.apiKey && obj.projectId) {
-      return {
-        apiKey: String(obj.apiKey),
-        authDomain: obj.authDomain ? String(obj.authDomain) : '',
-        projectId: String(obj.projectId),
-        storageBucket: obj.storageBucket ? String(obj.storageBucket) : '',
-        messagingSenderId: obj.messagingSenderId ? String(obj.messagingSenderId) : '',
-        appId: obj.appId ? String(obj.appId) : '',
-        measurementId: obj.measurementId ? String(obj.measurementId) : undefined,
-      };
-    }
-  } catch {
-    // Lanjutkan ke parser regex untuk JS snippet
-  }
-
-  // Regex extract field-field dari snippet JS Firebase console
-  const extractField = (key: string): string => {
-    const reg = new RegExp(`${key}\\s*:\\s*["']([^"']+)["']`, 'i');
-    const match = trimmed.match(reg);
-    return match ? match[1].trim() : '';
-  };
-
-  const apiKey = extractField('apiKey');
-  const projectId = extractField('projectId');
-  const authDomain = extractField('authDomain');
-  const storageBucket = extractField('storageBucket');
-  const messagingSenderId = extractField('messagingSenderId');
-  const appId = extractField('appId');
-  const measurementId = extractField('measurementId');
-
-  if (apiKey && projectId) {
-    return {
-      apiKey,
-      projectId,
-      authDomain,
-      storageBucket,
-      messagingSenderId,
-      appId,
-      measurementId: measurementId || undefined,
-    };
-  }
-
-  return null;
+export function getStoredFirebaseConfig(): FirebaseConfig {
+  return firebaseConfig;
 }
 
 export function getFirestoreInstance(): {
-  db: Firestore | null;
+  db: Firestore;
   isOnline: boolean;
   error?: string;
 } {
-  const config = getStoredFirebaseConfig();
-  if (!config || !config.apiKey || !config.projectId) {
-    return { db: null, isOnline: false, error: 'Firebase belum dikonfigurasi' };
-  }
-
-  try {
-    if (!cachedApp) {
-      const existingApps = getApps();
-      if (existingApps.length > 0) {
-        cachedApp = existingApps[0];
-      } else {
-        cachedApp = initializeApp(config);
-      }
-    }
-    if (!cachedDb && cachedApp) {
-      cachedDb = getFirestore(cachedApp);
-    }
-    return { db: cachedDb, isOnline: true };
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return { db: null, isOnline: false, error: msg };
-  }
-}
-
-export async function testFirebaseConnection(
-  config: FirebaseConfig
-): Promise<{ success: boolean; message: string }> {
-  try {
-    const tempAppName = `test-app-${Date.now()}`;
-    const testApp = initializeApp(config, tempAppName);
-    const testDb = getFirestore(testApp);
-
-    // Coba baca koleksi untuk memverifikasi izin Firestore
-    const colRef = collection(testDb, FIRESTORE_COLLECTION);
-    await getDocs(colRef);
-
-    return {
-      success: true,
-      message: 'Koneksi ke Firebase Firestore berhasil!',
-    };
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return {
-      success: false,
-      message: `Gagal terhubung ke Firebase: ${msg}`,
-    };
-  }
+  return { db, isOnline: true };
 }
 
 /**
  * Mengambil daftar rekap pengadaan dari Firebase Firestore
  */
 export async function fetchRemoteDrafts(): Promise<SavedDraft[]> {
-  const { db } = getFirestoreInstance();
-  if (!db) return [];
-
   const colRef = collection(db, FIRESTORE_COLLECTION);
   const snapshot = await getDocs(colRef);
   const results: SavedDraft[] = [];
@@ -199,11 +67,6 @@ export async function fetchRemoteDrafts(): Promise<SavedDraft[]> {
  * Menyimpan atau memperbarui data rekap pengadaan ke Firebase Firestore
  */
 export async function saveRemoteDraft(draft: SavedDraft): Promise<void> {
-  const { db } = getFirestoreInstance();
-  if (!db) {
-    throw new Error('Firebase Firestore tidak tersedia atau belum dikonfigurasi.');
-  }
-
   const docRef = doc(db, FIRESTORE_COLLECTION, draft.id);
   const payload = {
     ...draft,
@@ -218,9 +81,6 @@ export async function saveRemoteDraft(draft: SavedDraft): Promise<void> {
  * Menghapus data rekap pengadaan dari Firebase Firestore
  */
 export async function deleteRemoteDraft(id: string): Promise<void> {
-  const { db } = getFirestoreInstance();
-  if (!db) return;
-
   const docRef = doc(db, FIRESTORE_COLLECTION, id);
   await deleteDoc(docRef);
 }

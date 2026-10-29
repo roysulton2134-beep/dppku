@@ -613,7 +613,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               type="button"
               onClick={onOpenRekapModal}
               className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-md transition cursor-pointer shadow-xs"
-              title="Buka daftar rekapan paket pengadaan (Online Firebase & Lokal)"
+              title="Buka daftar rekapan paket pengadaan"
             >
               <Database className="w-3.5 h-3.5" />
               <span>Rekap Pengadaan</span>

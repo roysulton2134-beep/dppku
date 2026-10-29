@@ -1006,26 +1006,19 @@ export function App() {
               </span>
             </button>
 
-            {/* Tombol Utama: Rekap Pengadaan (Online Firebase & Lokal) */}
+            {/* Tombol Utama: Rekap Pengadaan (Online Cloud Firebase) */}
             <button
               type="button"
               onClick={() => setShowRekapModal(true)}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition cursor-pointer"
-              title="Buka daftar rekapan paket pengadaan (Online Firebase & Lokal)"
+              title="Buka daftar rekapan paket pengadaan"
             >
               <Database className="w-3.5 h-3.5" />
               <span>Rekap Pengadaan</span>
-              {isFbOnline ? (
-                <span
-                  className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-indigo-300 animate-pulse"
-                  title="Tersambung ke Cloud Firebase"
-                />
-              ) : (
-                <span
-                  className="w-2 h-2 rounded-full bg-amber-400"
-                  title="Penyimpanan Browser (Klik untuk hubungkan Firebase)"
-                />
-              )}
+              <span
+                className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-indigo-300 animate-pulse"
+                title="Cloud Firebase Firestore Aktif"
+              />
             </button>
 
             <button
