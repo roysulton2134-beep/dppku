@@ -28,7 +28,6 @@ import {
 } from '../../services/firebase';
 import { formatRupiahDoc } from '../../utils/terbilang';
 import { computeProcurementSummary } from '../../utils/calculations';
-import { stripOversizedBase64 } from '../../utils/imageCompressor';
 
 interface RekapPengadaanModalProps {
   isOpen: boolean;
@@ -67,7 +66,7 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
   const persistDrafts = (newDraftList: SavedDraft[]) => {
     setDrafts(newDraftList);
     try {
-      try { localStorage.setItem('dpp_dispora_saved_drafts_v1', JSON.stringify(newDraftList)); } catch (lsEx) { const safeList = stripOversizedBase64(newDraftList, 2048); localStorage.setItem('dpp_dispora_saved_drafts_v1', JSON.stringify(safeList)); }
+      localStorage.setItem('dpp_dispora_saved_drafts_v1', JSON.stringify(newDraftList));
     } catch (e) {
       console.warn('LocalStorage error:', e);
     }
@@ -537,7 +536,10 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
 
                               <button
                                 type="button"
-                                onClick={() => onPrintDraft(draft)}
+                                onClick={async () => {
+                                      const fullDraft = await hydrateDraftAssets(draft);
+                                      onPrintDraft(fullDraft);
+                                    }}
                                 className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
                                 title="Cetak langsung dokumen paket ini"
                               >
@@ -546,7 +548,10 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
 
                               <button
                                 type="button"
-                                onClick={() => onExportDocxDraft(draft)}
+                                onClick={async () => {
+                                      const fullDraft = await hydrateDraftAssets(draft);
+                                      onExportDocxDraft(fullDraft);
+                                    }}
                                 className="p-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 transition cursor-pointer"
                                 title="Download Word (.docx) paket ini"
                               >

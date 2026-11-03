@@ -1,4 +1,3 @@
-import { compressFileToDataUrl } from '../../utils/imageCompressor';
 import React from 'react';
 import {
   Building2,
