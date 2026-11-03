@@ -288,6 +288,10 @@ function normalizeTransactionData(
     merged.kontrak.nomorBAPP = restoreKodeMalang(merged.kontrak.nomorBAPP);
   }
 
+  if (!merged.metodePengadaan || merged.metodePengadaan === 'M-bizmarket / Toko Daring') {
+    merged.metodePengadaan = 'E-Purchasing Ekatalog V.6';
+  }
+
   return merged;
 }
 

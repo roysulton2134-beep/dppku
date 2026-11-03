@@ -750,6 +750,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     onChange={(e) =>
                       onChange({ ...transaction, metodePengadaan: e.target.value })
                     }
+                    placeholder="E-Purchasing Ekatalog V.6"
                     className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                   />
                 </div>

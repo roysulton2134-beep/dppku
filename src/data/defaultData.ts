@@ -114,7 +114,7 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
   nomorSuratTugas: '800.1.11.1/ 02.sarpras-ST/35.07.318/2026',
   tanggalSuratTugas: '2026-03-03',
   formatTanggalSuratTugas: 'bulan_tahun',
-  metodePengadaan: 'M-bizmarket / Toko Daring',
+  metodePengadaan: 'E-Purchasing Ekatalog V.6',
 
   nomorDPP: '00.3.2/02-DPP/35.07.318/2026',
   tanggalDPP: '2026-03-03',
