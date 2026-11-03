@@ -1,3 +1,4 @@
+import { compressFileToDataUrl } from '../../utils/imageCompressor';
 import React from 'react';
 import {
   Building2,
@@ -30,13 +31,9 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        onChange({ ...master, [field]: reader.result });
-      }
-    };
-    reader.readAsDataURL(file);
+    compressFileToDataUrl(file, 600, 0.75).then((dataUrl) => {
+      onChange({ ...master, [field]: dataUrl });
+    });
   };
 
   const updateDasarHukum = (idx: number, val: string) => {

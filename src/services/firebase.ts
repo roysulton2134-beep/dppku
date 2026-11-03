@@ -9,6 +9,7 @@ import {
   Firestore,
 } from 'firebase/firestore';
 import { FirebaseConfig, SavedDraft } from '../types/procurement';
+import { prepareDraftForFirestore } from '../utils/imageCompressor';
 
 // Konfigurasi resmi Firebase Project: yuhaba-ac5c4
 export const firebaseConfig: FirebaseConfig = {
@@ -86,11 +87,16 @@ export async function fetchRemoteDrafts(): Promise<SavedDraft[]> {
 
 /**
  * Menyimpan atau memperbarui data rekap pengadaan ke Firebase Firestore
+ * Melakukan kompresi gambar Base64 menjadi thumbnail dan memastikan ukuran dokumen < 1 MB
  */
 export async function saveRemoteDraft(draft: SavedDraft): Promise<void> {
   const docRef = doc(db, FIRESTORE_COLLECTION, draft.id);
+
+  // Kompresi thumbnail gambar Base64 & proteksi agar ukuran dokumen selalu < 1 MB
+  const safeDraft = await prepareDraftForFirestore(draft);
+
   const payload = {
-    ...draft,
+    ...safeDraft,
     isOnline: true,
     updatedAt: new Date().toISOString(),
   };
