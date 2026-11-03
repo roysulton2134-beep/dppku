@@ -39,6 +39,7 @@ interface RekapPengadaanModalProps {
   onExportDocxDraft: (draft: SavedDraft) => void;
   onNewBlankPacket: () => void;
   showToast: (msg: string) => void;
+  onDraftsChange?: (drafts: SavedDraft[]) => void;
 }
 
 export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
@@ -51,6 +52,7 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
   onExportDocxDraft,
   onNewBlankPacket,
   showToast,
+  onDraftsChange,
 }) => {
   const [drafts, setDrafts] = useState<SavedDraft[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,31 +62,41 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Helper untuk menyimpan ke localStorage & trigger callback sinkronisasi
+  const persistDrafts = (newDraftList: SavedDraft[]) => {
+    setDrafts(newDraftList);
+    try {
+      localStorage.setItem('dpp_dispora_saved_drafts_v1', JSON.stringify(newDraftList));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+    if (onDraftsChange) {
+      onDraftsChange(newDraftList);
+    }
+  };
+
   // Load drafts on mount or when modal opens
   const loadDraftsList = async () => {
+    // 1. Ambil dari LocalStorage terlebih dahulu (respons instan)
+    const localRaw = localStorage.getItem('dpp_dispora_saved_drafts_v1');
+    const localList: SavedDraft[] = localRaw ? JSON.parse(localRaw) : [];
+    setDrafts(localList);
+
+    // 2. Ambil dari Firebase Firestore (sinkronisasi online di latar belakang)
     setIsLoading(true);
     try {
-      // 1. Ambil dari LocalStorage terlebih dahulu (respons instan)
-      const localRaw = localStorage.getItem('dpp_dispora_saved_drafts_v1');
-      const localList: SavedDraft[] = localRaw ? JSON.parse(localRaw) : [];
-
-      // 2. Ambil dari Firebase Firestore
-      try {
-        const remoteList = await fetchRemoteDrafts();
+      const remoteList = await fetchRemoteDrafts();
+      if (remoteList && remoteList.length > 0) {
         // Gabungkan remote & local (utamakan remote jika id sama)
         const remoteIds = new Set(remoteList.map((x) => x.id));
         const merged = [
           ...remoteList,
           ...localList.filter((x) => !remoteIds.has(x.id)).map((x) => ({ ...x, isOnline: false })),
         ];
-        setDrafts(merged);
-        localStorage.setItem('dpp_dispora_saved_drafts_v1', JSON.stringify(merged));
-      } catch (fbErr) {
-        console.warn('Firebase Firestore saat ini menggunakan fallback lokal:', fbErr);
-        setDrafts(localList);
+        persistDrafts(merged);
       }
-    } catch (err) {
-      console.error('Error loading drafts:', err);
+    } catch (fbErr) {
+      console.warn('Firebase Firestore saat ini menggunakan fallback lokal:', fbErr);
     } finally {
       setIsLoading(false);
     }
@@ -128,23 +140,24 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
         isOnline: false,
       };
 
-      // 1. Simpan ke Firebase Firestore
+      // 1. Simpan ke LocalStorage & update state terlebih dahulu (PASTI TERSIMPAN)
+      const updated = [newDraft, ...drafts.filter((x) => x.id !== newDraft.id)];
+      persistDrafts(updated);
+      setSaveTitleInput('');
+
+      // 2. Sinkronkan ke Cloud Firebase Firestore
       try {
         await saveRemoteDraft(newDraft);
         newDraft.isOnline = true;
-        showToast(`Paket "${title}" berhasil disimpan secara online di Firebase!`);
+        const onlineUpdated = [newDraft, ...drafts.filter((x) => x.id !== newDraft.id)];
+        persistDrafts(onlineUpdated);
+        showToast(`Paket "${title}" berhasil direkap ke Cloud Firebase!`);
       } catch (err) {
-        console.warn('Gagal simpan ke Firebase Firestore, tersimpan di browser lokal:', err);
-        showToast(`Paket "${title}" berhasil disimpan di memori lokal.`);
+        console.warn('Gagal simpan ke Firebase Firestore, data aman di browser lokal:', err);
+        showToast(`Paket "${title}" berhasil disimpan di memori browser lokal!`);
       }
-
-      // 2. Simpan ke LocalStorage & update state
-      const updated = [newDraft, ...drafts.filter((x) => x.id !== newDraft.id)];
-      setDrafts(updated);
-      localStorage.setItem('dpp_dispora_saved_drafts_v1', JSON.stringify(updated));
-      setSaveTitleInput('');
     } catch (err) {
-      console.error(err);
+      console.error('Error saat menyimpan paket:', err);
       alert('Gagal menyimpan paket pengadaan.');
     } finally {
       setIsSaving(false);
@@ -156,10 +169,9 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
     if (!confirm(`Hapus rekapan pengadaan "${title}"?`)) return;
 
     try {
-      await deleteRemoteDraft(id).catch(console.warn);
+      deleteRemoteDraft(id).catch(console.warn);
       const updated = drafts.filter((x) => x.id !== id);
-      setDrafts(updated);
-      localStorage.setItem('dpp_dispora_saved_drafts_v1', JSON.stringify(updated));
+      persistDrafts(updated);
       showToast(`Paket "${title}" telah dihapus.`);
     } catch (err) {
       console.error(err);
@@ -180,7 +192,7 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
       showToast(`Berhasil menyinkronkan ${count} paket pengadaan ke Cloud Firebase!`);
     } catch (err) {
       console.error(err);
-      alert('Sinkronisasi ke Firebase mengalami kendala. Periksa izin aturan Firestore.');
+      alert('Sinkronisasi ke Firebase mengalami kendala. Periksa koneksi internet atau aturan Firestore.');
     } finally {
       setIsSyncing(false);
     }

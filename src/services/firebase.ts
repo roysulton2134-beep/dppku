@@ -21,6 +21,17 @@ export const firebaseConfig: FirebaseConfig = {
 };
 
 const FIRESTORE_COLLECTION = 'rekap_pengadaan_dispora';
+const FIREBASE_TIMEOUT_MS = 4000;
+
+// Helper timeout agar request ke Firestore tidak pernah menggantung (hang)
+function withTimeout<T>(promise: Promise<T>, ms = FIREBASE_TIMEOUT_MS): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Firebase request timeout (${ms}ms)`)), ms)
+    ),
+  ]);
+}
 
 // Initialize Firebase App
 export const app: FirebaseApp =
@@ -45,22 +56,32 @@ export function getFirestoreInstance(): {
  * Mengambil daftar rekap pengadaan dari Firebase Firestore
  */
 export async function fetchRemoteDrafts(): Promise<SavedDraft[]> {
-  const colRef = collection(db, FIRESTORE_COLLECTION);
-  const snapshot = await getDocs(colRef);
-  const results: SavedDraft[] = [];
+  try {
+    const colRef = collection(db, FIRESTORE_COLLECTION);
+    const snapshot = await withTimeout(getDocs(colRef));
+    const results: SavedDraft[] = [];
 
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data() as SavedDraft;
-    results.push({
-      ...data,
-      id: docSnap.id,
-      isOnline: true,
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data() as SavedDraft;
+      if (data && data.savedAt) {
+        results.push({
+          ...data,
+          id: docSnap.id,
+          isOnline: true,
+        });
+      }
     });
-  });
 
-  // Urutkan berdasarkan waktu simpan terbaru
-  results.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
-  return results;
+    // Urutkan berdasarkan waktu simpan terbaru
+    results.sort(
+      (a, b) =>
+        new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime()
+    );
+    return results;
+  } catch (err) {
+    console.warn('fetchRemoteDrafts: gagal mengambil dari Firebase, fallback lokal:', err);
+    return [];
+  }
 }
 
 /**
@@ -74,13 +95,19 @@ export async function saveRemoteDraft(draft: SavedDraft): Promise<void> {
     updatedAt: new Date().toISOString(),
   };
 
-  await setDoc(docRef, payload, { merge: true });
+  // Bersihkan field undefined yang ditolak oleh Firestore
+  const cleanPayload = JSON.parse(JSON.stringify(payload));
+  await withTimeout(setDoc(docRef, cleanPayload, { merge: true }));
 }
 
 /**
  * Menghapus data rekap pengadaan dari Firebase Firestore
  */
 export async function deleteRemoteDraft(id: string): Promise<void> {
-  const docRef = doc(db, FIRESTORE_COLLECTION, id);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, FIRESTORE_COLLECTION, id);
+    await withTimeout(deleteDoc(docRef));
+  } catch (err) {
+    console.warn('deleteRemoteDraft: gagal menghapus dari Firebase:', err);
+  }
 }

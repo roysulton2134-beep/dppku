@@ -221,6 +221,7 @@ interface CellOpts {
   vAlign?: (typeof VerticalAlign)[keyof typeof VerticalAlign];
   margins?: { top: number; bottom: number; left: number; right: number };
   shadingFill?: string;
+  verticalMerge?: 'restart' | 'continue';
 }
 
 function cell(
@@ -252,6 +253,7 @@ function cell(
     children: paragraphs,
     columnSpan: opts?.colSpan,
     rowSpan: opts?.rowSpan,
+    verticalMerge: opts?.verticalMerge,
     verticalAlign: opts?.vAlign ?? VerticalAlign.TOP,
     margins: opts?.margins ?? (isBorderless ? PAD_TIGHT : PAD_STD),
     width: opts?.widthDxa
@@ -1632,10 +1634,7 @@ export async function exportProcurementToDocx(
               widthDxa: dppCols[1],
               align: AlignmentType.CENTER,
               vAlign: VerticalAlign.CENTER,
-              verticalMerge:
-                i === 0
-                  ? VerticalMergeType.RESTART
-                  : VerticalMergeType.CONTINUE,
+              verticalMerge: i === 0 ? 'restart' : 'continue',
             })
           : cell(kodeRekParagraphs, {
               widthDxa: dppCols[1],

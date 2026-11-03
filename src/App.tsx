@@ -678,17 +678,35 @@ export function App() {
 
   // Save slot in browser LocalStorage
   const handleSaveSlotToBrowser = () => {
+    const dSummary = computeProcurementSummary(transaction);
     const title =
       draftNameInput.trim() ||
-      `${transaction.kodeRUP} - ${transaction.namaPaket.slice(0, 48)}`;
+      `${transaction.kodeRUP || 'DPP'} - ${transaction.namaPaket.slice(0, 48)}`;
     const newDraft: SavedDraft = {
       id: `draft-${Date.now()}`,
       title,
       savedAt: new Date().toISOString(),
       transaction,
       master,
+      nomorDPP: transaction.nomorDPP,
+      namaPaket: transaction.namaPaket,
+      tahunAnggaran: transaction.tahunAnggaran,
+      sumberDana:
+        transaction.sumberDanaAPBD ||
+        transaction.sumberDanaSuratPermohonan ||
+        'APBD',
+      totalPagu: dSummary.totalPagu,
+      totalHPS: dSummary.totalPenetapan,
+      totalKontrak: dSummary.totalNilaiKontrak,
+      itemCount: transaction.items.length,
+      penyediaNama: transaction.kontrak?.namaPerusahaan || '-',
+      isOnline: false,
     };
-    setSavedDrafts([newDraft, ...savedDrafts]);
+    const nextList = [newDraft, ...savedDrafts];
+    setSavedDrafts(nextList);
+    try {
+      localStorage.setItem(LS_DRAFTS_KEY, JSON.stringify(nextList));
+    } catch {}
     setDraftNameInput('');
     showToast('Draft berhasil disimpan di penyimpanan browser!');
   };
@@ -1486,6 +1504,7 @@ export function App() {
         onExportDocxDraft={handleExportDocxDraftDirectly}
         onNewBlankPacket={handleNewBlankPacket}
         showToast={showToast}
+        onDraftsChange={setSavedDrafts}
       />
     </div>
   );
