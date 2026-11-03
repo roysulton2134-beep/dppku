@@ -1634,8 +1634,8 @@ export async function exportProcurementToDocx(
               vAlign: VerticalAlign.CENTER,
               verticalMerge:
                 i === 0
-                  ? TableCellVerticalMergeType.RESTART
-                  : TableCellVerticalMergeType.CONTINUE,
+                  ? VerticalMergeType.RESTART
+                  : VerticalMergeType.CONTINUE,
             })
           : cell(kodeRekParagraphs, {
               widthDxa: dppCols[1],
