@@ -24,6 +24,7 @@ import {
 import {
   deleteRemoteDraft,
   fetchRemoteDrafts,
+  hydrateDraftAssets,
   saveRemoteDraft,
 } from '../../services/firebase';
 import { formatRupiahDoc } from '../../utils/terbilang';
@@ -523,8 +524,9 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
                             <div className="flex items-center justify-center gap-1">
                               <button
                                 type="button"
-                                onClick={() => {
-                                  onLoadDraft(draft);
+                                onClick={async () => {
+                                  const fullDraft = await hydrateDraftAssets(draft);
+                                  onLoadDraft(fullDraft);
                                   onClose();
                                 }}
                                 className="inline-flex items-center gap-1 px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold shadow-2xs transition cursor-pointer"

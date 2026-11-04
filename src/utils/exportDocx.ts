@@ -221,6 +221,7 @@ interface CellOpts {
   vAlign?: (typeof VerticalAlign)[keyof typeof VerticalAlign];
   margins?: { top: number; bottom: number; left: number; right: number };
   shadingFill?: string;
+  shading?: string | { fill?: string };
   verticalMerge?: 'restart' | 'continue';
 }
 
@@ -254,7 +255,7 @@ function cell(
     columnSpan: opts?.colSpan,
     rowSpan: opts?.rowSpan,
     verticalMerge: opts?.verticalMerge,
-    verticalAlign: opts?.vAlign ?? VerticalAlign.TOP,
+    verticalAlign: (opts?.vAlign ?? VerticalAlign.TOP) as any,
     margins: opts?.margins ?? (isBorderless ? PAD_TIGHT : PAD_STD),
     width: opts?.widthDxa
       ? { size: opts.widthDxa, type: WidthType.DXA }
