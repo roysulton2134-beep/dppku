@@ -93,6 +93,35 @@ export const DEFAULT_MASTER_DATA: MasterData = {
     'Jl. Trunojoyo Kompleks Stadion Kanjuruhan, Kecamatan Kepanjen, Kabupaten Malang',
 };
 
+export function getDefaultDates(baseDate = new Date()) {
+  const y = baseDate.getFullYear();
+  const m = String(baseDate.getMonth() + 1).padStart(2, '0');
+  const ym = `${y}-${m}`;
+
+  return {
+    year: String(y),
+    month: m,
+    ym,
+    tanggalSurvei: `${ym}-02`,
+    tanggalSuratPermohonan: `${ym}-03`,
+    tanggalSuratTugas: `${ym}-03`,
+    tanggalDPP: `${ym}-03`,
+    tanggalMulaiPelaksanaan: `${ym}-10`,
+    tanggalSelesaiPelaksanaan: `${ym}-16`,
+    tanggalSP: `${ym}-12`,
+    tanggalSPMK: `${ym}-12`,
+    tanggalMulaiKerja: `${ym}-12`,
+    tanggalSuratTagihan: `${ym}-16`,
+    tanggalSelesaiKerja: `${ym}-17`,
+    tanggalKPP: `${ym}-17`,
+    tanggalBAHP: `${ym}-17`,
+    tanggalBAST: `${ym}-17`,
+    tanggalBAPP: `${ym}-17`,
+  };
+}
+
+export const defaultDates = getDefaultDates();
+
 export const DEFAULT_TRANSACTION_DATA: TransactionData = {
   id: 'paket-dispora-2026-01',
   updatedAt: new Date().toISOString(),
@@ -103,7 +132,7 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
   sifatSuratPermohonan: 'Penting',
   lampiranSuratPermohonan: '1 (satu) bendel',
   perihalSuratPermohonan: 'Permohonan Pelaksanaan Pengadaan Barang/Jasa',
-  tanggalSuratPermohonan: '2026-10-03',
+  tanggalSuratPermohonan: defaultDates.tanggalSuratPermohonan,
   formatTanggalPermohonan: 'bulan_tahun',
   jenisDokumenAnggaranPermohonan: 'DPPA',
   nomorDPAPermohonan: 'DPPA/A.3/2.19.0.00.0.00.19.0000/001/2026',
@@ -112,16 +141,16 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
   modeTabelPermohonan: 'per_item',
 
   nomorSuratTugas: '800.1.11.1/ 02.sarpras-ST/35.07.318/2026',
-  tanggalSuratTugas: '2026-03-03',
+  tanggalSuratTugas: defaultDates.tanggalSuratTugas,
   formatTanggalSuratTugas: 'bulan_tahun',
   metodePengadaan: 'E-Purchasing Ekatalog V.6',
 
   nomorDPP: '00.3.2/02-DPP/35.07.318/2026',
-  tanggalDPP: '2026-03-03',
+  tanggalDPP: defaultDates.tanggalDPP,
   kodeRUP: '65070473',
 
-  tanggalMulaiPelaksanaan: '2026-03-10',
-  tanggalSelesaiPelaksanaan: '2026-03-16',
+  tanggalMulaiPelaksanaan: defaultDates.tanggalMulaiPelaksanaan,
+  tanggalSelesaiPelaksanaan: defaultDates.tanggalSelesaiPelaksanaan,
   jangkaWaktuHari: 7,
 
   sumberDanaAPBD: 'APBD',
@@ -203,14 +232,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 171200,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/herbisida-5910272-9321300.html',
         gambarUrl: '/sample-media/image2.jpeg',
       },
       toko2: {
         namaToko: 'CV INDOTAMA',
         hargaSatuan: 179820,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/herbisida-round-up-1580377-4270973.html',
         gambarUrl: '/sample-media/image3.jpeg',
       },
@@ -231,14 +260,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 17200.01,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/pupuk-urea-5910313-9321341.html',
         gambarUrl: '/sample-media/image4.jpeg',
       },
       toko2: {
         namaToko: 'CV ANDIKA BINTANG JAYA',
         hargaSatuan: 18900,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/pupuk-urea-5768698-9161082.html',
         gambarUrl: '/sample-media/image5.jpeg',
       },
@@ -259,14 +288,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 70900,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/kaporit-5910336-9321364.html',
         gambarUrl: '/sample-media/image6.jpeg',
       },
       toko2: {
         namaToko: 'CV SAHABAT BARU SEJAHTERA',
         hargaSatuan: 84000,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/kaporit-1kg-sbs-2393270-5260366.html',
         gambarUrl: '/sample-media/image7.jpeg',
       },
@@ -287,14 +316,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 23200,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/sos-cairan-pembersih-lantai-5910367-9321395.html',
         gambarUrl: '/sample-media/image8.jpeg',
       },
       toko2: {
         namaToko: 'YASIIRA HARAFA',
         hargaSatuan: 39294,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/cairan-pembersih-lantai-4311016-7485900.html',
         gambarUrl: '/sample-media/image9.jpeg',
       },
@@ -315,14 +344,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 38200,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/vixal-cairan-pembersih-toilet-5910384-9321412.html',
         gambarUrl: '/sample-media/image10.jpeg',
       },
       toko2: {
         namaToko: 'CV MITRA UTAMA PASURUAN',
         hargaSatuan: 39627,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/cairan-pembersih-toilet-4031540-7165761.html',
         gambarUrl: '/sample-media/image10.jpeg',
       },
@@ -344,14 +373,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 61200.01,
         jumlahOverride: 3660000,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/lysol-5924481-9336965.html',
         gambarUrl: '/sample-media/image11.jpeg',
       },
       toko2: {
         namaToko: 'CV. SANI BERKAH JAYA',
         hargaSatuan: 75000.48,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/cairan-lysol-5340407-8678735.html',
         gambarUrl: '/sample-media/image12.jpeg',
       },
@@ -372,14 +401,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 35200,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/sapu-lanati-ijuk-5910433-9321461.html',
         gambarUrl: '/sample-media/image13.jpeg',
       },
       toko2: {
         namaToko: 'CITRA CEMERLANG',
         hargaSatuan: 43000,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/sapu-ijuk-5019638-8315654.html',
         gambarUrl: '/sample-media/image14.jpeg',
       },
@@ -400,14 +429,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 28200.01,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/sapu-lidi-gagang-kayu-5910453-9321481.html',
         gambarUrl: '/sample-media/image15.jpeg',
       },
       toko2: {
         namaToko: 'TOKO SUMAJI',
         hargaSatuan: 66600,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/sapu-lidi-5853883-9256235.html',
         gambarUrl: '/sample-media/image16.jpeg',
       },
@@ -428,14 +457,14 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
       toko1: {
         namaToko: 'BERKAH MANDIRI SOLUSINDO',
         hargaSatuan: 44200,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/sikat-kamar-mandi-5910476-9321504.html',
         gambarUrl: '/sample-media/image17.jpeg',
       },
       toko2: {
         namaToko: 'TEKNIK UTAMA MANDIRI',
         hargaSatuan: 49728,
-        tanggalSurvei: '2026-03-02',
+        tanggalSurvei: defaultDates.tanggalSurvei,
         link: 'https://www.mbizmarket.co.id/catalog/detail/sikat-kamar-mandi-2729185-5663818.html',
         gambarUrl: '/sample-media/image18.jpeg',
       },
@@ -449,19 +478,19 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
 
   kontrak: {
     namaPerusahaan: 'CV. Berkah Mandiri Solusindo',
-    namaDirektur: 'Ahmad Junaedi',
+    namaDirektur: '',
     jabatanDirektur: 'Direktur',
-    alamatPerusahaan: 'Jl. Abdul Razak rt. 11 rw. 03, Desa Pagak Kecamatan Pagak',
-    namaBank: 'Bank Jatim',
-    nomorRekeningBank: '0041102802',
-    npwpPenyedia: '0415669233654000',
+    alamatPerusahaan: '',
+    namaBank: '',
+    nomorRekeningBank: '',
+    npwpPenyedia: '',
 
     nomorSP: '00.3.2/01-SP/35.07.318/2026',
-    tanggalSP: '2026-03-12',
+    tanggalSP: defaultDates.tanggalSP,
     nomorSPMK: '00.3.2/01-SPMK/35.07.318/2026',
-    tanggalSPMK: '2026-03-12',
-    tanggalMulaiKerja: '2026-03-12',
-    tanggalSelesaiKerja: '2026-03-17',
+    tanggalSPMK: defaultDates.tanggalSPMK,
+    tanggalMulaiKerja: defaultDates.tanggalMulaiKerja,
+    tanggalSelesaiKerja: defaultDates.tanggalSelesaiKerja,
     waktuPenyelesaianHari: 5,
     ppnPersen: 11,
     jenisPPh: 'pph22',
@@ -469,13 +498,13 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
     autoCalcTax: true,
 
     nomorKPP: '00.3.2/01-KPP/35.07.318/2026',
-    tanggalKPP: '2026-03-17',
+    tanggalKPP: defaultDates.tanggalKPP,
     nomorBAHP: '00.3.2/01-BAHP/35.07.318/2026',
-    tanggalBAHP: '2026-03-17',
+    tanggalBAHP: defaultDates.tanggalBAHP,
     nomorBAST: '00.3.2/01-BAST/35.07.318/2026',
-    tanggalBAST: '2026-03-17',
+    tanggalBAST: defaultDates.tanggalBAST,
     nomorBAPP: '00.3.2/01-BAPP/35.07.318/2026',
-    tanggalBAPP: '2026-03-17',
+    tanggalBAPP: defaultDates.tanggalBAPP,
 
     nomorDPA: 'DPA/A.1/2.19.0.00.0.00.19.0000/001/2026',
     tanggalDPA: '02 Januari 2026',
@@ -487,10 +516,10 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
     potonganPPNText: 'Rp. 5.531.201,-',
     potonganPPHText: 'Rp. 754.255,-',
 
-    nomorKuitansi: '35.07/02.0/000000/LS/2.19.0.00.19.0.00.0000/PR/11/2026',
+    nomorKuitansi: '',
     kodeRekeningKuitansi: '5.2.02.05.02.0003',
     tahunKuitansiLabel: '2026',
-    nomorSuratTagihan: '12/Term-BMS/III/2026',
-    tanggalSuratTagihan: '2026-03-16',
+    nomorSuratTagihan: '',
+    tanggalSuratTagihan: defaultDates.tanggalSuratTagihan,
   },
 };

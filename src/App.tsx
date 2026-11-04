@@ -292,6 +292,83 @@ function normalizeTransactionData(
     merged.metodePengadaan = 'E-Purchasing Ekatalog V.6';
   }
 
+  const dDates = getDefaultDates();
+
+  if (merged.kontrak) {
+    if (merged.kontrak.namaDirektur === 'Ahmad Junaedi') {
+      merged.kontrak.namaDirektur = '';
+    }
+    if (
+      merged.kontrak.alamatPerusahaan ===
+      'Jl. Abdul Razak rt. 11 rw. 03, Desa Pagak Kecamatan Pagak'
+    ) {
+      merged.kontrak.alamatPerusahaan = '';
+    }
+    if (merged.kontrak.namaBank === 'Bank Jatim') {
+      merged.kontrak.namaBank = '';
+    }
+    if (merged.kontrak.nomorRekeningBank === '0041102802') {
+      merged.kontrak.nomorRekeningBank = '';
+    }
+    if (merged.kontrak.npwpPenyedia === '0415669233654000') {
+      merged.kontrak.npwpPenyedia = '';
+    }
+    if (
+      merged.kontrak.nomorKuitansi ===
+      '35.07/02.0/000000/LS/2.19.0.00.19.0.00.0000/PR/11/2026'
+    ) {
+      merged.kontrak.nomorKuitansi = '';
+    }
+    if (merged.kontrak.nomorSuratTagihan === '12/Term-BMS/III/2026') {
+      merged.kontrak.nomorSuratTagihan = '';
+    }
+  }
+
+  // Jika data masih menggunakan tanggal default lama (Maret/Oktober), sesuaikan ke bulan sistem saat ini
+  const isOldDefaultDates =
+    raw?.id === 'paket-dispora-2026-01' ||
+    (raw?.tanggalDPP === '2026-03-03' &&
+      (raw?.tanggalSuratPermohonan === '2026-10-03' ||
+        raw?.tanggalSuratPermohonan === '2026-03-03'));
+
+  if (isOldDefaultDates) {
+    merged.tanggalSuratPermohonan = dDates.tanggalSuratPermohonan;
+    merged.tanggalSuratTugas = dDates.tanggalSuratTugas;
+    merged.tanggalDPP = dDates.tanggalDPP;
+    merged.tanggalMulaiPelaksanaan = dDates.tanggalMulaiPelaksanaan;
+    merged.tanggalSelesaiPelaksanaan = dDates.tanggalSelesaiPelaksanaan;
+    if (merged.kontrak) {
+      merged.kontrak.tanggalSP = dDates.tanggalSP;
+      merged.kontrak.tanggalSPMK = dDates.tanggalSPMK;
+      merged.kontrak.tanggalMulaiKerja = dDates.tanggalMulaiKerja;
+      merged.kontrak.tanggalSelesaiKerja = dDates.tanggalSelesaiKerja;
+      merged.kontrak.tanggalKPP = dDates.tanggalKPP;
+      merged.kontrak.tanggalBAHP = dDates.tanggalBAHP;
+      merged.kontrak.tanggalBAST = dDates.tanggalBAST;
+      merged.kontrak.tanggalBAPP = dDates.tanggalBAPP;
+      merged.kontrak.tanggalSuratTagihan = dDates.tanggalSuratTagihan;
+    }
+    if (Array.isArray(merged.items)) {
+      merged.items = merged.items.map((it) => ({
+        ...it,
+        toko1: {
+          ...it.toko1,
+          tanggalSurvei:
+            it.toko1.tanggalSurvei === '2026-03-02'
+              ? dDates.tanggalSurvei
+              : it.toko1.tanggalSurvei,
+        },
+        toko2: {
+          ...it.toko2,
+          tanggalSurvei:
+            it.toko2.tanggalSurvei === '2026-03-02'
+              ? dDates.tanggalSurvei
+              : it.toko2.tanggalSurvei,
+        },
+      }));
+    }
+  }
+
   return merged;
 }
 
@@ -590,13 +667,21 @@ export function App() {
   };
 
   const handleNewBlankPacket = () => {
+    const dates = getDefaultDates();
     const randomSuffix = String(Math.floor(Math.random() * 90) + 10);
     const newTx: TransactionData = {
       ...DEFAULT_TRANSACTION_DATA,
       id: `paket-dispora-${Date.now()}`,
       updatedAt: new Date().toISOString(),
       namaPaket: 'Pengadaan Belanja Bahan Baru',
-      nomorDPP: `00.3.2/${randomSuffix}-DPP/35.07.318/2026`,
+      nomorSuratPermohonan: `000.3.1/${randomSuffix}/35.07.318/${dates.year}`,
+      tanggalSuratPermohonan: dates.tanggalSuratPermohonan,
+      nomorSuratTugas: `800.1.11.1/ ${randomSuffix}.sarpras-ST/35.07.318/${dates.year}`,
+      tanggalSuratTugas: dates.tanggalSuratTugas,
+      nomorDPP: `00.3.2/${randomSuffix}-DPP/35.07.318/${dates.year}`,
+      tanggalDPP: dates.tanggalDPP,
+      tanggalMulaiPelaksanaan: dates.tanggalMulaiPelaksanaan,
+      tanggalSelesaiPelaksanaan: dates.tanggalSelesaiPelaksanaan,
       kodeRUP: String(Math.floor(Math.random() * 90000000) + 10000000),
       items: [
         {
@@ -617,19 +702,44 @@ export function App() {
           toko1: {
             namaToko: 'BERKAH MANDIRI SOLUSINDO',
             hargaSatuan: 100000,
-            tanggalSurvei: new Date().toISOString().slice(0, 10),
+            tanggalSurvei: dates.tanggalSurvei,
             link: 'https://www.mbizmarket.co.id/',
             gambarUrl: '',
           },
           toko2: {
             namaToko: 'CV MITRA UTAMA',
             hargaSatuan: 105000,
-            tanggalSurvei: new Date().toISOString().slice(0, 10),
+            tanggalSurvei: dates.tanggalSurvei,
             link: 'https://www.mbizmarket.co.id/',
             gambarUrl: '',
           },
         },
       ],
+      kontrak: {
+        ...DEFAULT_TRANSACTION_DATA.kontrak,
+        namaDirektur: '',
+        alamatPerusahaan: '',
+        namaBank: '',
+        nomorRekeningBank: '',
+        npwpPenyedia: '',
+        nomorSP: `00.3.2/${randomSuffix}-SP/35.07.318/${dates.year}`,
+        tanggalSP: dates.tanggalSP,
+        nomorSPMK: `00.3.2/${randomSuffix}-SPMK/35.07.318/${dates.year}`,
+        tanggalSPMK: dates.tanggalSPMK,
+        tanggalMulaiKerja: dates.tanggalMulaiKerja,
+        tanggalSelesaiKerja: dates.tanggalSelesaiKerja,
+        nomorKPP: `00.3.2/${randomSuffix}-KPP/35.07.318/${dates.year}`,
+        tanggalKPP: dates.tanggalKPP,
+        nomorBAHP: `00.3.2/${randomSuffix}-BAHP/35.07.318/${dates.year}`,
+        tanggalBAHP: dates.tanggalBAHP,
+        nomorBAST: `00.3.2/${randomSuffix}-BAST/35.07.318/${dates.year}`,
+        tanggalBAST: dates.tanggalBAST,
+        nomorBAPP: `00.3.2/${randomSuffix}-BAPP/35.07.318/${dates.year}`,
+        tanggalBAPP: dates.tanggalBAPP,
+        nomorSuratTagihan: '',
+        tanggalSuratTagihan: dates.tanggalSuratTagihan,
+        nomorKuitansi: '',
+      },
     };
     setTransaction(normalizeTransactionData(newTx));
     showToast('Formulir paket pengadaan baru siap diisi!');

@@ -2539,6 +2539,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.namaDirektur}
                   onChange={(e) => updateKontrak({ namaDirektur: e.target.value })}
+                  placeholder="Nama Direktur / Pimpinan"
                   className="w-full px-2.5 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2561,6 +2562,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.alamatPerusahaan}
                   onChange={(e) => updateKontrak({ alamatPerusahaan: e.target.value })}
+                  placeholder="Alamat Kantor / Perusahaan Penyedia"
                   className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2572,6 +2574,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.namaBank}
                   onChange={(e) => updateKontrak({ namaBank: e.target.value })}
+                  placeholder="Contoh: Bank Jatim / Mandiri / BRI"
                   className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2583,6 +2586,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.nomorRekeningBank}
                   onChange={(e) => updateKontrak({ nomorRekeningBank: e.target.value })}
+                  placeholder="Nomor Rekening Bank"
                   className="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2594,6 +2598,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.npwpPenyedia}
                   onChange={(e) => updateKontrak({ npwpPenyedia: e.target.value })}
+                  placeholder="Nomor NPWP Penyedia (15/16 Digit)"
                   className="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                 />
               </div>
@@ -3008,6 +3013,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.nomorKuitansi}
                   onChange={(e) => updateKontrak({ nomorKuitansi: e.target.value })}
+                  placeholder="Nomor Kuitansi Pencairan LS (kosong jika belum ada)"
                   className="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                 />
               </div>
@@ -3033,6 +3039,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.nomorSuratTagihan}
                   onChange={(e) => updateKontrak({ nomorSuratTagihan: e.target.value })}
+                  placeholder="Nomor Invoice / Surat Tagihan Penyedia"
                   className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                 />
               </div>
