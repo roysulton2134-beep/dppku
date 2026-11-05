@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Cloud,
   CloudCheck,
@@ -35,6 +35,8 @@ interface RekapPengadaanModalProps {
   onClose: () => void;
   currentTransaction: TransactionData;
   currentMaster: MasterData;
+  activeDraftId: string | null;
+  setActiveDraftId: (id: string | null) => void;
   onLoadDraft: (draft: SavedDraft) => void;
   onPrintDraft: (draft: SavedDraft) => void;
   onExportDocxDraft: (draft: SavedDraft) => void;
@@ -48,6 +50,8 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
   onClose,
   currentTransaction,
   currentMaster,
+  activeDraftId,
+  setActiveDraftId,
   onLoadDraft,
   onPrintDraft,
   onExportDocxDraft,
@@ -109,19 +113,66 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
     }
   }, [isOpen]);
 
+  // Deteksi apakah paket yang sedang terbuka di formulir sudah pernah tersimpan di daftar rekap
+  const matchedExistingDraft = useMemo(() => {
+    if (activeDraftId) {
+      const byId = drafts.find((d) => d.id === activeDraftId);
+      if (byId) return byId;
+    }
+    const byTxId = drafts.find((d) => d.transaction?.id === currentTransaction.id);
+    if (byTxId) return byTxId;
+
+    if (
+      currentTransaction.kodeRUP &&
+      currentTransaction.kodeRUP.length > 5 &&
+      currentTransaction.kodeRUP !== '65070473'
+    ) {
+      const byRUP = drafts.find((d) => d.transaction?.kodeRUP === currentTransaction.kodeRUP);
+      if (byRUP) return byRUP;
+    }
+
+    if (
+      currentTransaction.nomorDPP &&
+      currentTransaction.namaPaket &&
+      currentTransaction.namaPaket !== 'Pengadaan Belanja Bahan Baru'
+    ) {
+      const byNomorAndName = drafts.find(
+        (d) =>
+          d.nomorDPP === currentTransaction.nomorDPP ||
+          (d.namaPaket?.trim().toLowerCase() === currentTransaction.namaPaket.trim().toLowerCase())
+      );
+      if (byNomorAndName) return byNomorAndName;
+    }
+
+    return null;
+  }, [drafts, activeDraftId, currentTransaction]);
+
   if (!isOpen) return null;
 
-  // Handle Save Current Transaction
-  const handleSaveCurrentTransaction = async () => {
+  // Handle Save Current Transaction (Update existing or create new)
+  const handleSaveCurrentTransaction = async (asNewCopy = false) => {
     setIsSaving(true);
     try {
       const summary = computeProcurementSummary(currentTransaction);
-      const title =
-        saveTitleInput.trim() ||
-        `${currentTransaction.kodeRUP || 'DPP'} - ${currentTransaction.namaPaket.slice(0, 50)}`;
+      const isUpdating = !asNewCopy && Boolean(matchedExistingDraft);
 
-      const newDraft: SavedDraft = {
-        id: `pengadaan-${Date.now()}`,
+      let targetId: string;
+      let title: string;
+
+      if (isUpdating && matchedExistingDraft) {
+        targetId = matchedExistingDraft.id;
+        title =
+          saveTitleInput.trim() ||
+          matchedExistingDraft.title ||
+          `${currentTransaction.kodeRUP || 'DPP'} - ${currentTransaction.namaPaket.slice(0, 50)}`;
+      } else {
+        targetId = `pengadaan-${Date.now()}`;
+        const defaultTitle = `${currentTransaction.kodeRUP || 'DPP'} - ${currentTransaction.namaPaket.slice(0, 50)}`;
+        title = saveTitleInput.trim() || (asNewCopy ? `${defaultTitle} (Salinan)` : defaultTitle);
+      }
+
+      const draftPayload: SavedDraft = {
+        id: targetId,
         title,
         savedAt: new Date().toISOString(),
         transaction: currentTransaction,
@@ -141,27 +192,102 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
         isOnline: false,
       };
 
-      // 1. Simpan ke LocalStorage & update state terlebih dahulu (PASTI TERSIMPAN)
-      const updated = [newDraft, ...drafts.filter((x) => x.id !== newDraft.id)];
-      persistDrafts(updated);
+      // 1. Simpan ke LocalStorage & update state (perbarui jika ada, tambah jika baru)
+      let updatedList: SavedDraft[];
+      if (isUpdating) {
+        updatedList = drafts.map((d) => (d.id === targetId ? draftPayload : d));
+      } else {
+        updatedList = [draftPayload, ...drafts.filter((d) => d.id !== targetId)];
+      }
+      persistDrafts(updatedList);
+      setActiveDraftId(targetId);
       setSaveTitleInput('');
 
       // 2. Sinkronkan ke Cloud Firebase Firestore
       try {
-        await saveRemoteDraft(newDraft);
-        newDraft.isOnline = true;
-        const onlineUpdated = [newDraft, ...drafts.filter((x) => x.id !== newDraft.id)];
+        await saveRemoteDraft(draftPayload);
+        draftPayload.isOnline = true;
+        const onlineUpdated = updatedList.map((d) =>
+          d.id === targetId ? { ...draftPayload, isOnline: true } : d
+        );
         persistDrafts(onlineUpdated);
-        showToast(`Paket "${title}" berhasil direkap ke Cloud Firebase!`);
+        if (isUpdating) {
+          showToast(`Perubahan data paket "${title}" berhasil diperbarui di Cloud Firebase tanpa membuat duplikat!`);
+        } else {
+          showToast(`Paket "${title}" berhasil direkap ke Cloud Firebase!`);
+        }
       } catch (err) {
         console.warn('Gagal simpan ke Firebase Firestore, data aman di browser lokal:', err);
-        showToast(`Paket "${title}" berhasil disimpan di memori browser lokal!`);
+        if (isUpdating) {
+          showToast(`Perubahan data paket "${title}" berhasil diperbarui di memori browser lokal!`);
+        } else {
+          showToast(`Paket "${title}" berhasil disimpan di memori browser lokal!`);
+        }
       }
     } catch (err) {
       console.error('Error saat menyimpan paket:', err);
       alert('Gagal menyimpan paket pengadaan.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Bersihkan rekapan ganda / duplikat dari data sebelumnya
+  const handleCleanupDuplicates = async () => {
+    const seen = new Map<string, SavedDraft>();
+    const toDelete: SavedDraft[] = [];
+
+    const sorted = [...drafts].sort(
+      (a, b) => new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime()
+    );
+
+    for (const d of sorted) {
+      const rup = d.transaction?.kodeRUP?.trim();
+      const key =
+        rup && rup.length > 5 && rup !== '65070473'
+          ? `rup_${rup}`
+          : `dpp_${(d.nomorDPP || d.transaction?.nomorDPP || '').trim()}_${(
+              d.namaPaket ||
+              d.transaction?.namaPaket ||
+              ''
+            )
+              .trim()
+              .toLowerCase()}`;
+
+      if (seen.has(key)) {
+        toDelete.push(d);
+      } else {
+        seen.set(key, d);
+      }
+    }
+
+    if (toDelete.length === 0) {
+      alert('Tidak ada paket pengadaan ganda / duplikat yang terdeteksi.');
+      return;
+    }
+
+    if (
+      !confirm(
+        `Ditemukan ${toDelete.length} paket pengadaan ganda (versi lama). Hapus versi lama dan pertahankan versi terbaru?`
+      )
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const deleteIds = new Set(toDelete.map((x) => x.id));
+      for (const d of toDelete) {
+        await deleteRemoteDraft(d.id).catch(console.warn);
+      }
+      const cleaned = drafts.filter((d) => !deleteIds.has(d.id));
+      persistDrafts(cleaned);
+      showToast(`Berhasil membersihkan ${toDelete.length} paket duplikat!`);
+    } catch (err) {
+      console.error(err);
+      alert('Gagal membersihkan duplikat.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -300,27 +426,119 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
           </div>
 
           {/* Form Simpan Paket Aktif */}
-          <div className="bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-            <div className="flex-1 min-w-[280px]">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                Simpan Paket Pengadaan yang Sedang Terbuka ke Dalam Rekap:
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={saveTitleInput}
-                  onChange={(e) => setSaveTitleInput(e.target.value)}
-                  placeholder={`Nama Pengenal (Default: ${currentTransaction.namaPaket.slice(
-                    0,
-                    40
-                  )}...)`}
-                  className="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
+          <div className="bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {matchedExistingDraft ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    Mode Perbarui Paket (Update)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Mode Paket Baru
+                  </span>
+                )}
+                {matchedExistingDraft && (
+                  <span className="text-xs text-slate-500">
+                    Mengedit data: <strong className="text-slate-800">{matchedExistingDraft.title || matchedExistingDraft.namaPaket}</strong>
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        'Buat paket baru? Pastikan paket yang sedang aktif saat ini telah disimpan di rekap jika Anda masih membutuhkannya.'
+                      )
+                    ) {
+                      onNewBlankPacket();
+                      onClose();
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                  title="Kosongkan formulir untuk menyusun paket pengadaan baru dari nol"
+                >
+                  <Plus className="w-3.5 h-3.5 text-slate-500" />
+                  <span>+ Buat Paket Baru</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSyncing || isLoading}
+                  onClick={handleSyncLocalToFirebase}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition cursor-pointer disabled:opacity-50"
+                  title="Upload semua data lokal ke Cloud Firestore"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <span>Sinkronkan ke Cloud</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isLoading || isSyncing}
+                  onClick={handleCleanupDuplicates}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition cursor-pointer disabled:opacity-50"
+                  title="Deteksi dan bersihkan rekapan paket yang dobel/duplikat"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Bersihkan Duplikat</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                value={saveTitleInput}
+                onChange={(e) => setSaveTitleInput(e.target.value)}
+                placeholder={
+                  matchedExistingDraft
+                    ? `Perbarui judul: ${matchedExistingDraft.title}`
+                    : `Nama Pengenal (Default: ${currentTransaction.namaPaket.slice(0, 40)}...)`
+                }
+                className="flex-1 min-w-[260px] px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+
+              {matchedExistingDraft ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={() => handleSaveCurrentTransaction(false)}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                    title="Perbarui data rekapan yang sudah ada (tidak membuat paket ganda)"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Save className="w-3.5 h-3.5" />
+                    )}
+                    <span>Perbarui Data Paket</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={() => handleSaveCurrentTransaction(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition cursor-pointer disabled:opacity-50"
+                    title="Simpan sebagai paket baru / salinan terpisah"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Simpan Salinan Baru</span>
+                  </button>
+                </>
+              ) : (
                 <button
                   type="button"
                   disabled={isSaving}
-                  onClick={handleSaveCurrentTransaction}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                  onClick={() => handleSaveCurrentTransaction(false)}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                  title="Simpan paket baru ke dalam rekapan"
                 >
                   {isSaving ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -329,39 +547,7 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
                   )}
                   <span>Simpan Paket Ini</span>
                 </button>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  if (
-                    confirm(
-                      'Buat paket baru? Pastikan paket yang sedang aktif saat ini telah disimpan di rekap jika Anda masih membutuhkannya.'
-                    )
-                  ) {
-                    onNewBlankPacket();
-                    onClose();
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
-                title="Kosongkan formulir untuk menyusun paket pengadaan baru dari nol"
-              >
-                <Plus className="w-3.5 h-3.5 text-slate-500" />
-                <span>+ Buat Paket Baru</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={isSyncing || isLoading}
-                onClick={handleSyncLocalToFirebase}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition cursor-pointer disabled:opacity-50"
-                title="Upload semua data lokal ke Cloud Firestore"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>Sinkronkan ke Cloud</span>
-              </button>
+              )}
             </div>
           </div>
 
@@ -526,6 +712,7 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
                                 type="button"
                                 onClick={async () => {
                                   const fullDraft = await hydrateDraftAssets(draft);
+                                  setActiveDraftId(draft.id);
                                   onLoadDraft(fullDraft);
                                   onClose();
                                 }}

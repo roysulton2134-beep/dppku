@@ -62,10 +62,12 @@ import { RekapPengadaanModal } from './components/modals/RekapPengadaanModal';
 import { getFirestoreInstance } from './services/firebase';
 import { exportProcurementToDocx } from './utils/exportDocx';
 import { formatRupiahDoc } from './utils/terbilang';
+import { cleanDoubleNumber, extractSeqNo } from './utils/documentNumbers';
 
 const LS_MASTER_KEY = 'dpp_dispora_master_v1';
 const LS_TX_KEY = 'dpp_dispora_tx_v1';
 const LS_DRAFTS_KEY = 'dpp_dispora_saved_drafts_v1';
+const LS_ACTIVE_DRAFT_KEY = 'dpp_dispora_active_draft_id_v1';
 
 function normalizeMasterData(raw?: Partial<MasterData> | null): MasterData {
   if (!raw) return DEFAULT_MASTER_DATA;
@@ -266,16 +268,13 @@ function normalizeTransactionData(
       DEFAULT_TRANSACTION_DATA.kontrak.potonganPPHText;
   }
 
-  // Pastikan nomor 35.07.318 pada penomoran tidak pernah rusak/terubah menjadi nomor urut
-  const restoreKodeMalang = (str?: string) =>
-    str ? str.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/') : str || '';
-
+  // Bersihkan penomoran surat agar tidak terjadi nomor ganda dan pastikan kode 35.07.318 valid
   if (merged.nomorSuratPermohonan) {
-    merged.nomorSuratPermohonan = restoreKodeMalang(merged.nomorSuratPermohonan);
+    merged.nomorSuratPermohonan = cleanDoubleNumber(merged.nomorSuratPermohonan);
 
     // Pulihkan jika nomor urut sempat terhapus sebelum /SPRS/ (misal "000.3.1/SPRS/35.07.318")
     if (/^000\.3\.1\/\s*SPRS\//i.test(merged.nomorSuratPermohonan)) {
-      const urutDPP = merged.nomorDPP?.match(/00\.3\.2\/(\d+)-DPP/)?.[1] || '02';
+      const urutDPP = extractSeqNo(merged);
       merged.nomorSuratPermohonan = merged.nomorSuratPermohonan.replace(
         /^000\.3\.1\/\s*SPRS\//i,
         `000.3.1/${urutDPP}/SPRS/`
@@ -291,18 +290,18 @@ function normalizeTransactionData(
     merged.formatTanggalSuratTugas = 'lengkap';
   }
   if (merged.nomorSuratTugas) {
-    merged.nomorSuratTugas = restoreKodeMalang(merged.nomorSuratTugas);
+    merged.nomorSuratTugas = cleanDoubleNumber(merged.nomorSuratTugas);
   }
   if (merged.nomorDPP) {
-    merged.nomorDPP = restoreKodeMalang(merged.nomorDPP);
+    merged.nomorDPP = cleanDoubleNumber(merged.nomorDPP);
   }
   if (merged.kontrak) {
-    merged.kontrak.nomorSP = restoreKodeMalang(merged.kontrak.nomorSP);
-    merged.kontrak.nomorSPMK = restoreKodeMalang(merged.kontrak.nomorSPMK);
-    merged.kontrak.nomorKPP = restoreKodeMalang(merged.kontrak.nomorKPP);
-    merged.kontrak.nomorBAHP = restoreKodeMalang(merged.kontrak.nomorBAHP);
-    merged.kontrak.nomorBAST = restoreKodeMalang(merged.kontrak.nomorBAST);
-    merged.kontrak.nomorBAPP = restoreKodeMalang(merged.kontrak.nomorBAPP);
+    merged.kontrak.nomorSP = cleanDoubleNumber(merged.kontrak.nomorSP);
+    merged.kontrak.nomorSPMK = cleanDoubleNumber(merged.kontrak.nomorSPMK);
+    merged.kontrak.nomorKPP = cleanDoubleNumber(merged.kontrak.nomorKPP);
+    merged.kontrak.nomorBAHP = cleanDoubleNumber(merged.kontrak.nomorBAHP);
+    merged.kontrak.nomorBAST = cleanDoubleNumber(merged.kontrak.nomorBAST);
+    merged.kontrak.nomorBAPP = cleanDoubleNumber(merged.kontrak.nomorBAPP);
   }
 
   if (!merged.metodePengadaan || merged.metodePengadaan === 'M-bizmarket / Toko Daring') {
@@ -311,7 +310,9 @@ function normalizeTransactionData(
 
   const dDates = getDefaultDates();
 
-  if (merged.kontrak) {
+  // Kosongkan data contoh penyedia HANYA pada paket default awal sebelum ada editan pengguna
+  const isDefaultInitialPacket = raw?.id === 'paket-dispora-2026-01' && (!raw.updatedAt || raw.updatedAt === DEFAULT_TRANSACTION_DATA.updatedAt);
+  if (isDefaultInitialPacket && merged.kontrak) {
     if (merged.kontrak.namaDirektur === 'Ahmad Junaedi') {
       merged.kontrak.namaDirektur = '';
     }
@@ -343,7 +344,7 @@ function normalizeTransactionData(
 
   // Jika data masih menggunakan tanggal default lama (Maret/Oktober), sesuaikan ke bulan sistem saat ini
   const isOldDefaultDates =
-    raw?.id === 'paket-dispora-2026-01' ||
+    (raw?.id === 'paket-dispora-2026-01' && (!raw.updatedAt || raw.updatedAt === DEFAULT_TRANSACTION_DATA.updatedAt)) ||
     (raw?.tanggalDPP === '2026-03-03' &&
       (raw?.tanggalSuratPermohonan === '2026-10-03' ||
         raw?.tanggalSuratPermohonan === '2026-03-03'));
@@ -555,6 +556,14 @@ export function App() {
     }
   });
 
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(LS_ACTIVE_DRAFT_KEY) || null;
+    } catch {
+      return null;
+    }
+  });
+
   // Layout & Navigation States
   const [layoutMode, setLayoutMode] = useState<'split' | 'form' | 'preview'>('split');
   const [leftTab, setLeftTab] = useState<'transaksi' | 'master'>('transaksi');
@@ -596,6 +605,18 @@ export function App() {
       // ignore quota error
     }
   }, [savedDrafts]);
+
+  useEffect(() => {
+    try {
+      if (activeDraftId) {
+        localStorage.setItem(LS_ACTIVE_DRAFT_KEY, activeDraftId);
+      } else {
+        localStorage.removeItem(LS_ACTIVE_DRAFT_KEY);
+      }
+    } catch {
+      // ignore
+    }
+  }, [activeDraftId]);
 
   // Reset forcePrintAll after print dialog closes
   useEffect(() => {
@@ -660,6 +681,7 @@ export function App() {
 
   // Handlers untuk Rekapitulasi Pengadaan
   const handleLoadDraftFromRekap = (draft: SavedDraft) => {
+    setActiveDraftId(draft.id);
     setTransaction(normalizeTransactionData(draft.transaction));
     if (draft.master) setMaster(normalizeMasterData(draft.master));
     showToast(
@@ -668,6 +690,7 @@ export function App() {
   };
 
   const handlePrintDraftDirectly = (draft: SavedDraft) => {
+    setActiveDraftId(draft.id);
     setTransaction(normalizeTransactionData(draft.transaction));
     if (draft.master) setMaster(normalizeMasterData(draft.master));
     setForcePrintAll(true);
@@ -684,6 +707,7 @@ export function App() {
   };
 
   const handleNewBlankPacket = () => {
+    setActiveDraftId(null);
     const dates = getDefaultDates();
     const randomSuffix = String(Math.floor(Math.random() * 90) + 10);
     const newTx: TransactionData = {
@@ -691,6 +715,9 @@ export function App() {
       id: `paket-dispora-${Date.now()}`,
       updatedAt: new Date().toISOString(),
       namaPaket: 'Pengadaan Belanja Bahan Baru',
+      kakLatarBelakang: '',
+      kakMaksud: '',
+      kakTujuan: '',
       nomorSuratPermohonan: `000.3.1/${randomSuffix}/35.07.318/${dates.year}`,
       tanggalSuratPermohonan: dates.tanggalSuratPermohonan,
       nomorSuratTugas: `800.1.11.1/ ${randomSuffix}.sarpras-ST/35.07.318/${dates.year}`,
@@ -1607,6 +1634,7 @@ export function App() {
                         'Kembalikan seluruh data transaksi & master ke contoh bawaan Dispora Kabupaten Malang?'
                       )
                     ) {
+                      setActiveDraftId(null);
                       setMaster(DEFAULT_MASTER_DATA);
                       setTransaction(DEFAULT_TRANSACTION_DATA);
                       setShowDraftModal(false);
@@ -1630,6 +1658,8 @@ export function App() {
         onClose={() => setShowRekapModal(false)}
         currentTransaction={transaction}
         currentMaster={master}
+        activeDraftId={activeDraftId}
+        setActiveDraftId={setActiveDraftId}
         onLoadDraft={handleLoadDraftFromRekap}
         onPrintDraft={handlePrintDraftDirectly}
         onExportDocxDraft={handleExportDocxDraftDirectly}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Building,
   Calculator,
@@ -49,6 +49,11 @@ import {
   getItemSurveyTotal,
   tanggalKeEjaanResmi,
 } from '../../utils/terbilang';
+import {
+  cleanDoubleNumber,
+  extractSeqNo,
+  updateAllDocumentNumbers,
+} from '../../utils/documentNumbers';
 
 interface TransactionFormPanelProps {
   transaction: TransactionData;
@@ -98,8 +103,19 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
     'utama' | 'barang' | 'kontrak' | 'kak_checklist'
   >('barang');
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
-  const [seqNoInput, setSeqNoInput] = useState('01');
+  const currentUrut = useMemo(() => extractSeqNo(transaction), [
+    transaction.nomorDPP,
+    transaction.nomorSuratPermohonan,
+    transaction.nomorSuratTugas,
+  ]);
+  const [seqNoInput, setSeqNoInput] = useState(currentUrut);
   const [numUpdateMessage, setNumUpdateMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentUrut) {
+      setSeqNoInput(currentUrut);
+    }
+  }, [currentUrut]);
 
   const ejaanDPP = tanggalKeEjaanResmi(transaction.tanggalDPP);
   const kontrak = transaction.kontrak;
@@ -333,173 +349,11 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
   const handleBatchUpdateAllDocumentNumbers = (customNum?: string) => {
     const rawUrut = (customNum !== undefined ? customNum : seqNoInput).trim();
     const urut = rawUrut || '01';
-    const thn = transaction.tahunAnggaran || '2026';
-
-    // 1. Surat Permohonan: e.g. "000.3.1/02/35.07.318/2026" or "800.1.11.1/02.sarpras/35.07.318/2026"
-    let nextPermohonan = transaction.nomorSuratPermohonan || '';
-    // Kembalikan 35.07.318 jika sebelumnya sempat rusak menjadi nomor lain
-    nextPermohonan = nextPermohonan.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-
-    if (/\.sarpras\/(?:35|\d+)\.07\.318/i.test(nextPermohonan)) {
-      nextPermohonan = nextPermohonan.replace(
-        /(\/\s*)[^/]*?(\.sarpras\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/\/(?:35|\d+)\.07\.318/i.test(nextPermohonan)) {
-      if (/^([^\/]+\/\s*)[^\/]+(?:\/[^\/]+)*(\/35\.07\.318\/[^\s]*)$/.test(nextPermohonan)) {
-        nextPermohonan = nextPermohonan.replace(
-          /^([^\/]+\/\s*)[^\/]+(?:\/[^\/]+)*(\/35\.07\.318\/[^\s]*)$/,
-          `$1${urut}$2`
-        );
-      } else {
-        nextPermohonan = nextPermohonan.replace(
-          /(\/\s*)[^/]*?(\/35\.07\.318\/[^\s]*)/,
-          `$1${urut}$2`
-        );
-      }
-    } else {
-      nextPermohonan = `000.3.1/${urut}/35.07.318/${thn}`;
-    }
-
-    // 2. Surat Tugas: e.g. "800.1.11.1/ 02.sarpras-ST/35.07.318/2026"
-    let nextTugas = transaction.nomorSuratTugas || '';
-    nextTugas = nextTugas.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/\.sarpras-ST\/(?:35|\d+)\.07\.318/i.test(nextTugas)) {
-      nextTugas = nextTugas.replace(
-        /(\/\s*)[^/]*?(\.sarpras-ST\/35\.07\.318\/[^\s]*)/i,
-        `$1 ${urut}$2`
-      );
-    } else if (/-ST\/(?:35|\d+)\.07\.318/i.test(nextTugas)) {
-      nextTugas = nextTugas.replace(
-        /(\/\s*)[^/]*?(-ST\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/\/(?:35|\d+)\.07\.318/i.test(nextTugas)) {
-      nextTugas = nextTugas.replace(
-        /(\/\s*)[^/]*?(\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else {
-      nextTugas = `800.1.11.1/ ${urut}.sarpras-ST/35.07.318/${thn}`;
-    }
-
-    // 3. DPP: e.g. "00.3.2/02-DPP/35.07.318/2026"
-    let nextDPP = transaction.nomorDPP || '';
-    nextDPP = nextDPP.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/-DPP\/(?:35|\d+)\.07\.318/i.test(nextDPP)) {
-      nextDPP = nextDPP.replace(
-        /(\/\s*)[^/]*?(-DPP\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/(\/\s*)[^/]*?(-DPP)/i.test(nextDPP)) {
-      nextDPP = nextDPP.replace(/(\/\s*)[^/]*?(-DPP)/i, `$1${urut}$2`);
-    } else {
-      nextDPP = `00.3.2/${urut}-DPP/35.07.318/${thn}`;
-    }
-
-    // 4. SP: e.g. "00.3.2/01-SP/35.07.318/2026"
-    let nextSP = transaction.kontrak.nomorSP || '';
-    nextSP = nextSP.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/-SP\/(?:35|\d+)\.07\.318/i.test(nextSP)) {
-      nextSP = nextSP.replace(
-        /(\/\s*)[^/]*?(-SP\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/(\/\s*)[^/]*?(-SP\/)/i.test(nextSP)) {
-      nextSP = nextSP.replace(/(\/\s*)[^/]*?(-SP\/)/i, `$1${urut}$2`);
-    } else {
-      nextSP = `00.3.2/${urut}-SP/35.07.318/${thn}`;
-    }
-
-    // 5. SPMK: e.g. "00.3.2/01-SPMK/35.07.318/2026"
-    let nextSPMK = transaction.kontrak.nomorSPMK || '';
-    nextSPMK = nextSPMK.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/-SPMK\/(?:35|\d+)\.07\.318/i.test(nextSPMK)) {
-      nextSPMK = nextSPMK.replace(
-        /(\/\s*)[^/]*?(-SPMK\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/(\/\s*)[^/]*?(-SPMK\/)/i.test(nextSPMK)) {
-      nextSPMK = nextSPMK.replace(/(\/\s*)[^/]*?(-SPMK\/)/i, `$1${urut}$2`);
-    } else {
-      nextSPMK = `00.3.2/${urut}-SPMK/35.07.318/${thn}`;
-    }
-
-    // 6. KPP: e.g. "00.3.2/01-KPP/35.07.318/2026"
-    let nextKPP = transaction.kontrak.nomorKPP || '';
-    nextKPP = nextKPP.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/-KPP\/(?:35|\d+)\.07\.318/i.test(nextKPP)) {
-      nextKPP = nextKPP.replace(
-        /(\/\s*)[^/]*?(-KPP\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/(\/\s*)[^/]*?(-KPP\/)/i.test(nextKPP)) {
-      nextKPP = nextKPP.replace(/(\/\s*)[^/]*?(-KPP\/)/i, `$1${urut}$2`);
-    } else {
-      nextKPP = `00.3.2/${urut}-KPP/35.07.318/${thn}`;
-    }
-
-    // 7. BAHP: e.g. "00.3.2/01-BAHP/35.07.318/2026"
-    let nextBAHP = transaction.kontrak.nomorBAHP || '';
-    nextBAHP = nextBAHP.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/-BAHP\/(?:35|\d+)\.07\.318/i.test(nextBAHP)) {
-      nextBAHP = nextBAHP.replace(
-        /(\/\s*)[^/]*?(-BAHP\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/(\/\s*)[^/]*?(-BAHP\/)/i.test(nextBAHP)) {
-      nextBAHP = nextBAHP.replace(/(\/\s*)[^/]*?(-BAHP\/)/i, `$1${urut}$2`);
-    } else {
-      nextBAHP = `00.3.2/${urut}-BAHP/35.07.318/${thn}`;
-    }
-
-    // 8. BAST: e.g. "00.3.2/01-BAST/35.07.318/2026"
-    let nextBAST = transaction.kontrak.nomorBAST || '';
-    nextBAST = nextBAST.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/-BAST\/(?:35|\d+)\.07\.318/i.test(nextBAST)) {
-      nextBAST = nextBAST.replace(
-        /(\/\s*)[^/]*?(-BAST\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/(\/\s*)[^/]*?(-BAST\/)/i.test(nextBAST)) {
-      nextBAST = nextBAST.replace(/(\/\s*)[^/]*?(-BAST\/)/i, `$1${urut}$2`);
-    } else {
-      nextBAST = `00.3.2/${urut}-BAST/35.07.318/${thn}`;
-    }
-
-    // 9. BAPP (Persetujuan Pembayaran): e.g. "00.3.2/01-BAPP/35.07.318/2026"
-    let nextBAPP = transaction.kontrak.nomorBAPP || '';
-    nextBAPP = nextBAPP.replace(/\/(?:\d+|\s*)\.07\.318\//g, '/35.07.318/');
-    if (/-BAPP\/(?:35|\d+)\.07\.318/i.test(nextBAPP)) {
-      nextBAPP = nextBAPP.replace(
-        /(\/\s*)[^/]*?(-BAPP\/35\.07\.318\/[^\s]*)/i,
-        `$1${urut}$2`
-      );
-    } else if (/(\/\s*)[^/]*?(-BAPP\/)/i.test(nextBAPP)) {
-      nextBAPP = nextBAPP.replace(/(\/\s*)[^/]*?(-BAPP\/)/i, `$1${urut}$2`);
-    } else {
-      nextBAPP = `00.3.2/${urut}-BAPP/35.07.318/${thn}`;
-    }
-
-    onChange({
-      ...transaction,
-      updatedAt: new Date().toISOString(),
-      nomorSuratPermohonan: nextPermohonan,
-      nomorSuratTugas: nextTugas,
-      nomorDPP: nextDPP,
-      kontrak: {
-        ...transaction.kontrak,
-        nomorSP: nextSP,
-        nomorSPMK: nextSPMK,
-        nomorKPP: nextKPP,
-        nomorBAHP: nextBAHP,
-        nomorBAST: nextBAST,
-        nomorBAPP: nextBAPP,
-      },
-    });
+    const updated = updateAllDocumentNumbers(transaction, urut);
+    onChange(updated);
 
     setNumUpdateMessage(
-      `Semua nomor dokumen dari data DPP diawal s.d. Persetujuan Pembayaran (BAPP) berhasil diubah menjadi nomor "${urut}"!`
+      `Semua nomor dokumen (Permohonan, Tugas, DPP, SP, SPMK, KPP, BAHP, BAST, BAPP) berhasil diperbarui ke nomor "${urut}" tanpa ada nomor ganda!`
     );
     setTimeout(() => {
       setNumUpdateMessage(null);
@@ -595,6 +449,12 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               type="text"
               value={seqNoInput}
               onChange={(e) => setSeqNoInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleBatchUpdateAllDocumentNumbers(seqNoInput);
+                }
+              }}
               placeholder="01"
               className="w-14 px-2 py-1 text-xs font-mono font-bold text-slate-900 bg-white rounded-md text-center focus:outline-none ml-1"
             />
