@@ -1104,10 +1104,9 @@ export async function exportProcurementToDocx(
   // ============================================================================
   // DOC 2: SURAT PERMOHONAN PELAKSANAAN PENGADAAN BARANG/JASA
   // ============================================================================
-  const tglPermohonanStr =
-    transaction.formatTanggalPermohonan === 'lengkap'
-      ? formatTanggalIndo(transaction.tanggalSuratPermohonan)
-      : `        ${formatBulanTahunIndo(transaction.tanggalSuratPermohonan)}`;
+  const tglPermohonanStr = transaction.tanggalSuratPermohonan
+    ? formatTanggalIndo(transaction.tanggalSuratPermohonan)
+    : '';
 
   const jenisDokAnggaran = transaction.jenisDokumenAnggaranPermohonan || 'DPPA';
   const nomorDPAPermohonan =
@@ -1392,10 +1391,9 @@ export async function exportProcurementToDocx(
   // ============================================================================
   // DOC 3: SURAT TUGAS PPK
   // ============================================================================
-  const tglSTStr =
-    transaction.formatTanggalSuratTugas === 'lengkap'
-      ? formatTanggalIndo(transaction.tanggalSuratTugas)
-      : `      ${formatBulanTahunIndo(transaction.tanggalSuratTugas)}`;
+  const tglSTStr = transaction.tanggalSuratTugas
+    ? formatTanggalIndo(transaction.tanggalSuratTugas)
+    : '';
 
   const doc3DasarCols = [1050, 220, 420, 7665]; // sum = 9355
   const doc3KepadaCols = [1050, 220, 1400, 220, 6465]; // sum = 9355

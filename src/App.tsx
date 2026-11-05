@@ -159,6 +159,10 @@ function normalizeTransactionData(
 
         return {
           ...it,
+          keteranganSpesifikasi:
+            typeof it.keteranganSpesifikasi === 'string'
+              ? it.keteranganSpesifikasi
+              : def?.keteranganSpesifikasi ?? '',
           hargaPaguSatuan: hargaPagu,
           hargaPenetapanSatuan: hargaPenetapan,
           hargaKontrakSatuan: hargaKontrak,
@@ -268,11 +272,23 @@ function normalizeTransactionData(
 
   if (merged.nomorSuratPermohonan) {
     merged.nomorSuratPermohonan = restoreKodeMalang(merged.nomorSuratPermohonan);
-    // Jika ada nomor bertumpuk akibat bug sebelumnya (misal "000.3.1/02/01/35.07.318")
-    merged.nomorSuratPermohonan = merged.nomorSuratPermohonan.replace(
-      /^(000\.3\.1\/\s*)[^/]+\/([^/]+\/35\.07\.318\/)/,
-      '$1$2'
-    );
+
+    // Pulihkan jika nomor urut sempat terhapus sebelum /SPRS/ (misal "000.3.1/SPRS/35.07.318")
+    if (/^000\.3\.1\/\s*SPRS\//i.test(merged.nomorSuratPermohonan)) {
+      const urutDPP = merged.nomorDPP?.match(/00\.3\.2\/(\d+)-DPP/)?.[1] || '02';
+      merged.nomorSuratPermohonan = merged.nomorSuratPermohonan.replace(
+        /^000\.3\.1\/\s*SPRS\//i,
+        `000.3.1/${urutDPP}/SPRS/`
+      );
+    }
+  }
+
+  // Pastikan format tanggal default permohonan dan surat tugas menampilkan tanggal lengkap (ada tanggal angka)
+  if (!merged.formatTanggalPermohonan || merged.formatTanggalPermohonan === 'bulan_tahun') {
+    merged.formatTanggalPermohonan = 'lengkap';
+  }
+  if (!merged.formatTanggalSuratTugas || merged.formatTanggalSuratTugas === 'bulan_tahun') {
+    merged.formatTanggalSuratTugas = 'lengkap';
   }
   if (merged.nomorSuratTugas) {
     merged.nomorSuratTugas = restoreKodeMalang(merged.nomorSuratTugas);

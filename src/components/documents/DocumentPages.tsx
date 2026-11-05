@@ -301,12 +301,9 @@ export const Doc2SuratPermohonan: React.FC<DocProps> = ({
   transaction,
   summary,
 }) => {
-  const tglSurat =
-    transaction.formatTanggalPermohonan === 'lengkap'
-      ? formatTanggalIndo(transaction.tanggalSuratPermohonan, false)
-      : `\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0${formatBulanTahunIndo(
-          transaction.tanggalSuratPermohonan
-        )}`;
+  const tglSurat = transaction.tanggalSuratPermohonan
+    ? formatTanggalIndo(transaction.tanggalSuratPermohonan, false)
+    : '';
 
   const jenisDokAnggaran = transaction.jenisDokumenAnggaranPermohonan || 'DPPA';
   const nomorDPAPermohonan =
@@ -464,12 +461,9 @@ export const Doc2SuratPermohonan: React.FC<DocProps> = ({
  * 3. SURAT TUGAS PPK
  */
 export const Doc3SuratTugas: React.FC<DocProps> = ({ master, transaction }) => {
-  const tglSuratTugas =
-    transaction.formatTanggalSuratTugas === 'lengkap'
-      ? formatTanggalIndo(transaction.tanggalSuratTugas, false)
-      : `\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0${formatBulanTahunIndo(
-          transaction.tanggalSuratTugas
-        )}`;
+  const tglSuratTugas = transaction.tanggalSuratTugas
+    ? formatTanggalIndo(transaction.tanggalSuratTugas, false)
+    : '';
 
   return (
     <div className="doc-page text-[10.5pt] leading-[1.35] text-black">

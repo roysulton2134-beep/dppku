@@ -846,34 +846,18 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     placeholder="Nomor Surat Permohonan"
                     className="w-full px-2.5 py-1 text-xs border border-slate-200 rounded-lg"
                   />
-                  <div className="flex gap-1">
-                    <input
-                      type="date"
-                      value={transaction.tanggalSuratPermohonan}
-                      onChange={(e) =>
-                        onChange({
-                          ...transaction,
-                          tanggalSuratPermohonan: e.target.value,
-                        })
-                      }
-                      className="flex-1 px-2 py-1 text-xs border border-slate-200 rounded-lg"
-                    />
-                    <select
-                      value={transaction.formatTanggalPermohonan}
-                      onChange={(e) =>
-                        onChange({
-                          ...transaction,
-                          formatTanggalPermohonan: e.target.value as
-                            | 'lengkap'
-                            | 'bulan_tahun',
-                        })
-                      }
-                      className="px-1.5 py-1 text-[11px] border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="bulan_tahun">Bln Thn</option>
-                      <option value="lengkap">Lengkap</option>
-                    </select>
-                  </div>
+                  <input
+                    type="date"
+                    value={transaction.tanggalSuratPermohonan}
+                    onChange={(e) =>
+                      onChange({
+                        ...transaction,
+                        tanggalSuratPermohonan: e.target.value,
+                        formatTanggalPermohonan: 'lengkap',
+                      })
+                    }
+                    className="w-full px-2 py-1 text-xs border border-slate-200 rounded-lg"
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -889,34 +873,18 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     placeholder="Nomor Surat Tugas"
                     className="w-full px-2.5 py-1 text-xs border border-slate-200 rounded-lg"
                   />
-                  <div className="flex gap-1">
-                    <input
-                      type="date"
-                      value={transaction.tanggalSuratTugas}
-                      onChange={(e) =>
-                        onChange({
-                          ...transaction,
-                          tanggalSuratTugas: e.target.value,
-                        })
-                      }
-                      className="flex-1 px-2 py-1 text-xs border border-slate-200 rounded-lg"
-                    />
-                    <select
-                      value={transaction.formatTanggalSuratTugas}
-                      onChange={(e) =>
-                        onChange({
-                          ...transaction,
-                          formatTanggalSuratTugas: e.target.value as
-                            | 'lengkap'
-                            | 'bulan_tahun',
-                        })
-                      }
-                      className="px-1.5 py-1 text-[11px] border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="bulan_tahun">Bln Thn</option>
-                      <option value="lengkap">Lengkap</option>
-                    </select>
-                  </div>
+                  <input
+                    type="date"
+                    value={transaction.tanggalSuratTugas}
+                    onChange={(e) =>
+                      onChange({
+                        ...transaction,
+                        tanggalSuratTugas: e.target.value,
+                        formatTanggalSuratTugas: 'lengkap',
+                      })
+                    }
+                    className="w-full px-2 py-1 text-xs border border-slate-200 rounded-lg"
+                  />
                 </div>
 
                 <div className="space-y-1">
@@ -1557,23 +1525,47 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                       </div>
                     </div>
 
-                    {/* Baris 2: Nama Barang / Jasa (Leluasa & Jelas) */}
+                    {/* Baris 2: Nama Barang & Keterangan Spesifikasi Teknis */}
                     <div className="bg-white p-2.5 rounded-lg border border-slate-200/90 shadow-2xs">
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                        Nama Barang / Pekerjaan / Jasa
-                      </label>
-                      <input
-                        type="text"
-                        value={item.namaBarang}
-                        onChange={(e) =>
-                          updateItem(item.id, (it) => ({
-                            ...it,
-                            namaBarang: e.target.value,
-                          }))
-                        }
-                        placeholder="Contoh: Herbisida / Pupuk Urea / Jasa Pemeliharaan..."
-                        className="w-full px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
-                      />
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5">
+                        <div className="lg:col-span-7">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Nama Barang / Pekerjaan / Jasa
+                          </label>
+                          <input
+                            type="text"
+                            value={item.namaBarang}
+                            onChange={(e) =>
+                              updateItem(item.id, (it) => ({
+                                ...it,
+                                namaBarang: e.target.value,
+                              }))
+                            }
+                            placeholder="Contoh: Herbisida / Pupuk Urea / Jasa Pemeliharaan..."
+                            className="w-full px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                          />
+                        </div>
+                        <div className="lg:col-span-5">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Keterangan Spesifikasi</span>
+                            <span className="text-[10px] text-indigo-700 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+                              Dok. 7 Spek Teknis
+                            </span>
+                          </label>
+                          <input
+                            type="text"
+                            value={item.keteranganSpesifikasi || ''}
+                            onChange={(e) =>
+                              updateItem(item.id, (it) => ({
+                                ...it,
+                                keteranganSpesifikasi: e.target.value,
+                              }))
+                            }
+                            placeholder="Keterangan spesifikasi (kolom kanan Spek Teknis)..."
+                            className="w-full px-3 py-1.5 text-xs sm:text-sm text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     {/* Baris 3: Volume & Satuan Kuantitas (Besar, Jelas, Rapi & Terbaca) */}
