@@ -619,7 +619,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     Mode Tabel Surat Permohonan (Dok. 2)
                   </label>
                   <select
-                    value={transaction.modeTabelPermohonan || 'per_item'}
+                    value={transaction.modeTabelPermohonan || 'per_paket'}
                     onChange={(e) =>
                       onChange({
                         ...transaction,

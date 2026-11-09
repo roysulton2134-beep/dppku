@@ -141,15 +141,29 @@ export async function fetchRemoteDrafts(): Promise<SavedDraft[]> {
       }
     });
 
-    // Urutkan berdasarkan waktu simpan terbaru
-    results.sort(
-      (a, b) =>
-        new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime()
-    );
+    // Urutkan berdasarkan urutan manual (orderIndex) jika ada, fallback ke waktu simpan terbaru
+    results.sort((a, b) => {
+      const orderA = typeof a.orderIndex === 'number' ? a.orderIndex : 999999;
+      const orderB = typeof b.orderIndex === 'number' ? b.orderIndex : 999999;
+      if (orderA !== orderB) return orderA - orderB;
+      return new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime();
+    });
     return results;
   } catch (err) {
     console.warn('fetchRemoteDrafts: gagal mengambil dari Firebase, fallback lokal:', err);
     return [];
+  }
+}
+
+/**
+ * Memperbarui urutan manual (orderIndex) paket di Cloud Firestore
+ */
+export async function updateDraftOrderIndex(draftId: string, orderIndex: number): Promise<void> {
+  try {
+    const mainRef = doc(db, FIRESTORE_COLLECTION, draftId);
+    await withTimeout(setDoc(mainRef, { orderIndex, updatedAt: new Date().toISOString() }, { merge: true }));
+  } catch (err) {
+    console.warn('updateDraftOrderIndex: gagal memperbarui urutan ke Firebase:', draftId, err);
   }
 }
 

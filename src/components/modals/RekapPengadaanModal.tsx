@@ -15,6 +15,9 @@ import {
   X,
   FileSpreadsheet,
   FolderOpen,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from 'lucide-react';
 import {
   MasterData,
@@ -26,6 +29,7 @@ import {
   fetchRemoteDrafts,
   hydrateDraftAssets,
   saveRemoteDraft,
+  updateDraftOrderIndex,
 } from '../../services/firebase';
 import { formatRupiahDoc } from '../../utils/terbilang';
 import { computeProcurementSummary } from '../../utils/calculations';
@@ -80,12 +84,23 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
     }
   };
 
+  // Helper untuk sorting konsisten (orderIndex ascending, lalu savedAt descending)
+  const sortDraftsList = (list: SavedDraft[]): SavedDraft[] => {
+    return [...list].sort((a, b) => {
+      const orderA = typeof a.orderIndex === 'number' ? a.orderIndex : 999999;
+      const orderB = typeof b.orderIndex === 'number' ? b.orderIndex : 999999;
+      if (orderA !== orderB) return orderA - orderB;
+      return new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime();
+    });
+  };
+
   // Load drafts on mount or when modal opens
   const loadDraftsList = async () => {
     // 1. Ambil dari LocalStorage terlebih dahulu (respons instan)
     const localRaw = localStorage.getItem('dpp_dispora_saved_drafts_v1');
     const localList: SavedDraft[] = localRaw ? JSON.parse(localRaw) : [];
-    setDrafts(localList);
+    const sortedLocal = sortDraftsList(localList);
+    setDrafts(sortedLocal);
 
     // 2. Ambil dari Firebase Firestore (sinkronisasi online di latar belakang)
     setIsLoading(true);
@@ -96,9 +111,10 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
         const remoteIds = new Set(remoteList.map((x) => x.id));
         const merged = [
           ...remoteList,
-          ...localList.filter((x) => !remoteIds.has(x.id)).map((x) => ({ ...x, isOnline: false })),
+          ...sortedLocal.filter((x) => !remoteIds.has(x.id)).map((x) => ({ ...x, isOnline: false })),
         ];
-        persistDrafts(merged);
+        const sortedMerged = sortDraftsList(merged);
+        persistDrafts(sortedMerged);
       }
     } catch (fbErr) {
       console.warn('Firebase Firestore saat ini menggunakan fallback lokal:', fbErr);
@@ -195,9 +211,17 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
       // 1. Simpan ke LocalStorage & update state (perbarui jika ada, tambah jika baru)
       let updatedList: SavedDraft[];
       if (isUpdating) {
+        const existingIdx = drafts.findIndex((d) => d.id === targetId);
+        draftPayload.orderIndex =
+          matchedExistingDraft?.orderIndex ?? (existingIdx >= 0 ? existingIdx : 0);
         updatedList = drafts.map((d) => (d.id === targetId ? draftPayload : d));
       } else {
-        updatedList = [draftPayload, ...drafts.filter((d) => d.id !== targetId)];
+        draftPayload.orderIndex = 0;
+        const remaining = drafts.filter((d) => d.id !== targetId);
+        updatedList = [draftPayload, ...remaining].map((d, idx) => ({
+          ...d,
+          orderIndex: idx,
+        }));
       }
       persistDrafts(updatedList);
       setActiveDraftId(targetId);
@@ -323,6 +347,96 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
     } finally {
       setIsSyncing(false);
     }
+  };
+
+  // Pindahkan urutan paket 1 langkah ke atas atau ke bawah
+  const handleMoveDraft = async (draftId: string, direction: 'up' | 'down') => {
+    const currentFilteredIdx = filteredDrafts.findIndex((d) => d.id === draftId);
+    if (currentFilteredIdx === -1) return;
+
+    const targetFilteredIdx = direction === 'up' ? currentFilteredIdx - 1 : currentFilteredIdx + 1;
+    if (targetFilteredIdx < 0 || targetFilteredIdx >= filteredDrafts.length) return;
+
+    const targetDraftId = filteredDrafts[targetFilteredIdx].id;
+
+    const currentIdx = drafts.findIndex((d) => d.id === draftId);
+    const targetIdx = drafts.findIndex((d) => d.id === targetDraftId);
+    if (currentIdx === -1 || targetIdx === -1) return;
+
+    const newDrafts = [...drafts];
+    const [movedItem] = newDrafts.splice(currentIdx, 1);
+    newDrafts.splice(targetIdx, 0, movedItem);
+
+    const reindexedDrafts = newDrafts.map((d, idx) => ({
+      ...d,
+      orderIndex: idx,
+    }));
+
+    persistDrafts(reindexedDrafts);
+
+    // Sinkronisasi perubahan urutan ke Cloud Firebase di latar belakang
+    Promise.all(
+      reindexedDrafts.map((d) => updateDraftOrderIndex(d.id, d.orderIndex!))
+    ).catch(console.warn);
+
+    showToast(`Urutan paket "${movedItem.namaPaket || movedItem.title}" berhasil diubah.`);
+  };
+
+  // Pindahkan urutan paket langsung ke nomor tertentu (1-based)
+  const handleSetDraftPosition = async (draftId: string, targetPositionOneBased: number) => {
+    const currentIdx = drafts.findIndex((d) => d.id === draftId);
+    if (currentIdx === -1) return;
+    const targetIndex = Math.max(0, Math.min(drafts.length - 1, targetPositionOneBased - 1));
+    if (currentIdx === targetIndex) return;
+
+    const newDrafts = [...drafts];
+    const [movedItem] = newDrafts.splice(currentIdx, 1);
+    newDrafts.splice(targetIndex, 0, movedItem);
+
+    const reindexedDrafts = newDrafts.map((d, idx) => ({
+      ...d,
+      orderIndex: idx,
+    }));
+
+    persistDrafts(reindexedDrafts);
+
+    Promise.all(
+      reindexedDrafts.map((d) => updateDraftOrderIndex(d.id, d.orderIndex!))
+    ).catch(console.warn);
+
+    showToast(`Paket "${movedItem.namaPaket || movedItem.title}" dipindahkan ke urutan ke-${targetIndex + 1}.`);
+  };
+
+  // Dialog cepat untuk mengubah posisi urutan dengan mengetikkan angka
+  const handlePromptChangePosition = (draft: SavedDraft) => {
+    const currentIdx = drafts.findIndex((d) => d.id === draft.id);
+    if (currentIdx === -1) return;
+
+    const input = prompt(
+      `Ubah nomor urut rekap paket:\n"${draft.namaPaket || draft.title}"\n\nMasukkan nomor urut tujuan (1 s.d. ${drafts.length}):`,
+      String(currentIdx + 1)
+    );
+    if (!input) return;
+
+    const targetNum = parseInt(input.trim(), 10);
+    if (isNaN(targetNum) || targetNum < 1 || targetNum > drafts.length) {
+      alert(`Nomor urut tidak valid. Harap masukkan angka antara 1 sampai ${drafts.length}.`);
+      return;
+    }
+
+    handleSetDraftPosition(draft.id, targetNum);
+  };
+
+  // Reset urutan berdasarkan tanggal simpan terbaru
+  const handleResetToDateOrder = () => {
+    if (!confirm('Urutkan ulang seluruh daftar rekap berdasarkan tanggal simpan terbaru?')) return;
+    const sorted = [...drafts].sort(
+      (a, b) => new Date(b.savedAt || 0).getTime() - new Date(a.savedAt || 0).getTime()
+    );
+    const reindexed = sorted.map((d, idx) => ({ ...d, orderIndex: idx }));
+    persistDrafts(reindexed);
+    Promise.all(reindexed.map((d) => updateDraftOrderIndex(d.id, d.orderIndex!))).catch(console.warn);
+    showToast('Urutan rekap telah diatur ulang berdasarkan tanggal terbaru.');
   };
 
   // Filtered drafts
@@ -587,6 +701,16 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
                   </option>
                 ))}
               </select>
+
+              <button
+                type="button"
+                onClick={handleResetToDateOrder}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-lg transition cursor-pointer"
+                title="Urutkan ulang seluruh rekap berdasarkan tanggal simpan terbaru"
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Urutkan Tanggal</span>
+              </button>
             </div>
           </div>
 
@@ -612,7 +736,7 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
                 <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold">
-                      <th className="py-2.5 px-3 text-center w-10">No</th>
+                      <th className="py-2.5 px-2 text-center w-14" title="Urutan baris rekapitulasi. Gunakan panah atau klik angka untuk memindahkan">Urutan</th>
                       <th className="py-2.5 px-3 w-32">Penyimpanan &amp; Waktu</th>
                       <th className="py-2.5 px-3 min-w-[240px]">Paket Pekerjaan</th>
                       <th className="py-2.5 px-3 w-40">Sumber Dana</th>
@@ -641,8 +765,38 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
                           key={draft.id}
                           className="hover:bg-slate-50/80 transition group"
                         >
-                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
-                            {idx + 1}
+                          <td className="py-2 px-1 text-center select-none">
+                            <div className="flex flex-col items-center justify-center">
+                              <button
+                                type="button"
+                                disabled={filteredDrafts.findIndex((d) => d.id === draft.id) === 0}
+                                onClick={() => handleMoveDraft(draft.id, 'up')}
+                                className="p-0.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer transition"
+                                title="Naikkan urutan (Pindah ke atas)"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handlePromptChangePosition(draft)}
+                                className="px-1.5 py-0.5 my-0.5 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 rounded transition cursor-pointer border border-transparent hover:border-indigo-200"
+                                title="Klik untuk ubah nomor urut langsung"
+                              >
+                                {idx + 1}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={
+                                  filteredDrafts.findIndex((d) => d.id === draft.id) ===
+                                  filteredDrafts.length - 1
+                                }
+                                onClick={() => handleMoveDraft(draft.id, 'down')}
+                                className="p-0.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer transition"
+                                title="Turunkan urutan (Pindah ke bawah)"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
 
                           <td className="py-2.5 px-3">

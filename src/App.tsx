@@ -718,6 +718,7 @@ export function App() {
       kakLatarBelakang: '',
       kakMaksud: '',
       kakTujuan: '',
+      modeTabelPermohonan: 'per_paket',
       nomorSuratPermohonan: `000.3.1/${randomSuffix}/35.07.318/${dates.year}`,
       tanggalSuratPermohonan: dates.tanggalSuratPermohonan,
       nomorSuratTugas: `800.1.11.1/ ${randomSuffix}.sarpras-ST/35.07.318/${dates.year}`,

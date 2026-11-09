@@ -292,6 +292,7 @@ export interface SavedDraft {
   itemCount?: number;
   penyediaNama?: string;
   isOnline?: boolean;
+  orderIndex?: number;
 }
 
 export interface FirebaseConfig {

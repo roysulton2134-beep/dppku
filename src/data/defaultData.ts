@@ -138,7 +138,7 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
   nomorDPAPermohonan: 'DPPA/A.3/2.19.0.00.0.00.19.0000/001/2026',
   tanggalDPAPermohonan: '19 Oktober Tahun 2026',
   sumberDanaTabelPermohonan: 'PAD',
-  modeTabelPermohonan: 'per_item',
+  modeTabelPermohonan: 'per_paket',
 
   nomorSuratTugas: '800.1.11.1/ 02.sarpras-ST/35.07.318/2026',
   tanggalSuratTugas: defaultDates.tanggalSuratTugas,

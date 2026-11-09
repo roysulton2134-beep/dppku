@@ -652,7 +652,7 @@ function getSuratPermohonanTableRowsDocx(
     transaction.sumberDanaSuratPermohonan ||
     transaction.sumberDanaSingkatKuitansi ||
     'PAD';
-  const mode = transaction.modeTabelPermohonan || 'per_item';
+  const mode = transaction.modeTabelPermohonan || 'per_paket';
 
   if (mode === 'per_paket') {
     return [
