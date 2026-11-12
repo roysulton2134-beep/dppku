@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Building2,
   CheckCircle2,
-  CloudCheck,
   Columns2,
   Database,
   Download,
@@ -1102,7 +1101,7 @@ export function App() {
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Sistem Terpadu 18 Dokumen Pengadaan: Persiapan/DPP (1–9) &amp; Kontrak/BAST/Kuitansi (10–18)
+                Dokumen Pengadaan Barang/Jasa (DPP &amp; Kontrak/BAST)
               </p>
             </div>
           </div>
@@ -1202,7 +1201,7 @@ export function App() {
               </span>
             </button>
 
-            {/* Tombol Utama: Rekap Pengadaan (Online Cloud Firebase) */}
+            {/* Tombol Utama: Rekap Pengadaan */}
             <button
               type="button"
               onClick={() => setShowRekapModal(true)}
@@ -1211,10 +1210,6 @@ export function App() {
             >
               <Database className="w-3.5 h-3.5" />
               <span>Rekap Pengadaan</span>
-              <span
-                className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-indigo-300 animate-pulse"
-                title="Cloud Firebase Firestore Aktif"
-              />
             </button>
 
             <button
@@ -1277,10 +1272,6 @@ export function App() {
                   <Building2 className="w-3.5 h-3.5" />
                   <span>Master Data &amp; Pejabat</span>
                 </button>
-              </div>
-
-              <div className="text-[11px] text-slate-500 hidden sm:block">
-                Auto-saved ke LocalStorage
               </div>
             </div>
 
@@ -1536,11 +1527,10 @@ export function App() {
               {/* 1. Export / Import File JSON */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
                 <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  1. Cadangkan / Pindah Perangkat via File JSON
+                  1. Cadangkan / Muat File JSON
                 </div>
                 <p className="text-xs text-slate-600">
-                  Unduh seluruh data paket (Tahap 1 DPP &amp; Tahap 2 Kontrak/BAST/Kuitansi) ke komputer Anda sebagai file{' '}
-                  <code>.json</code> atau muat kembali file draft yang pernah disimpan.
+                  Unduh atau muat kembali data paket dalam format <code>.json</code>.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   <button
@@ -1652,7 +1642,7 @@ export function App() {
               {/* 3. Reset ke Contoh Standar Dispora */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <div className="text-xs text-slate-500">
-                  Ingin mengembalikan contoh data asli Dispora Kab. Malang (Pagu Rp 56.887.000,- &amp; Kontrak Rp 55.814.850,-)?
+                  Kembalikan contoh data bawaan?
                 </div>
                 <button
                   type="button"

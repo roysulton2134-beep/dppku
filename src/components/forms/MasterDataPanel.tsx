@@ -59,13 +59,9 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
   return (
     <div className="space-y-5 pb-8">
       {/* Banner Info */}
-      <div className="bg-indigo-50/80 border border-indigo-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
-        <div className="text-xs text-indigo-900">
-          <span className="font-semibold block text-indigo-950">
-            Master Data Instansi &amp; Pejabat (Tersimpan Otomatis di Browser)
-          </span>
-          Digunakan bersama untuk seluruh 18 dokumen (Tahap 1 DPP maupun Tahap 2 Kontrak,
-          BAST &amp; Kuitansi).
+      <div className="bg-indigo-50/80 border border-indigo-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold text-indigo-950">
+          Master Data Instansi &amp; Pejabat
         </div>
         <button
           type="button"
@@ -275,13 +271,13 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
       <section className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
         <div className="flex items-center gap-2 font-semibold text-sm text-slate-800 border-b border-slate-100 pb-2.5">
           <UserCheck className="w-4 h-4 text-indigo-600" />
-          2. Pejabat Penandatangan (Tahap 1 DPP &amp; Tahap 2 Kontrak/BAST/Kuitansi)
+          2. Pejabat Penandatangan
         </div>
 
-        {/* A. PPK / Kepala Dinas (Digunakan di Seluruh 18 Dokumen) */}
+        {/* A. PPK / Kepala Dinas */}
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2.5">
           <div className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
-            A. PPK / Kepala Dinas (DPP, KAK, RAB, Kontrak SP, SPMK, BAHP, BAST, BAPP &amp; Kuitansi)
+            A. PPK / Kepala Dinas
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
             <div className="sm:col-span-3">
@@ -396,8 +392,7 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
         {/* B. Kabid Sarpras / PPTK */}
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2.5">
           <div className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
-            B. Kepala Bidang / PPTK (Checklist, KPP, BAHP, BAPP, Ringkasan Kontrak &amp;
-            Kuitansi)
+            B. Kepala Bidang / PPTK
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
@@ -471,7 +466,7 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2">
             <div className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
-              C. Pejabat Penatausahaan Keuangan (PPK SKPD)
+              C. PPK Keuangan SKPD
             </div>
             <div>
               <label className="block text-[10px] font-medium text-slate-600">
@@ -604,11 +599,11 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
           </div>
         </div>
 
-        {/* E. Tabel Paraf Hierarki (Sebelah Kiri Tanda Tangan) */}
+        {/* E. Tabel Paraf Hierarki */}
         <div className="p-3 rounded-lg bg-indigo-50/40 border border-indigo-200/80 space-y-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
-              E. Tabel Paraf Hierarki (Sebelah Kiri Tanda Tangan - Otomatis Seluruh Dokumen)
+              E. Tabel Paraf Hierarki
             </div>
             <div className="flex items-center gap-2">
               <label className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 cursor-pointer">
@@ -620,7 +615,7 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
                   }
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
-                <span>Tampilkan Tabel Paraf Hierarki</span>
+                <span>Tampilkan</span>
               </label>
               <button
                 type="button"
@@ -691,7 +686,7 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
         <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
           <div className="flex items-center gap-2 font-semibold text-sm text-slate-800">
             <FileText className="w-4 h-4 text-indigo-600" />
-            3. Dasar Hukum Standar &amp; Surat Persetujuan PP
+            3. Dasar Hukum &amp; Persetujuan PP
           </div>
           <button
             type="button"
@@ -776,7 +771,7 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
         <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
           <div className="flex items-center gap-2 font-semibold text-sm text-slate-800">
             <MapPin className="w-4 h-4 text-indigo-600" />
-            4. Program, Kegiatan, Sub Kegiatan &amp; Lokasi Default
+            4. Program, Kegiatan &amp; Lokasi Default
           </div>
           <button
             type="button"

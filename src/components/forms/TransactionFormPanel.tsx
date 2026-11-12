@@ -365,9 +365,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
     const updated = updateAllDocumentNumbers(transaction, urut);
     onChange(updated);
 
-    setNumUpdateMessage(
-      `Semua nomor dokumen (Permohonan, Tugas, DPP, SP, SPMK, KPP, BAHP, BAST, BAPP) berhasil diperbarui ke nomor "${urut}" tanpa ada nomor ganda!`
-    );
+    setNumUpdateMessage(`Semua nomor dokumen diperbarui ke "${urut}".`);
     setTimeout(() => {
       setNumUpdateMessage(null);
     }, 4500);
@@ -456,7 +454,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-white/10">
           <div className="flex items-center gap-1.5 text-xs text-slate-300">
             <Hash className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span className="font-medium">No. Urut Dokumen (DPP–BAPP):</span>
+            <span className="font-medium">No. Urut Dokumen:</span>
             <input
               id="input-seq-no"
               type="text"
@@ -567,7 +565,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2 font-semibold text-sm text-slate-800">
                 <FolderKanban className="w-4 h-4 text-indigo-600" />
-                A. Identitas Paket, Nomor &amp; Tanggal DPP (Dok. 1–4)
+                A. Identitas Paket &amp; Dokumen DPP
               </div>
               <button
                 type="button"
@@ -629,7 +627,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                 </div>
                 <div className="sm:col-span-5">
                   <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
-                    Mode Tabel Surat Permohonan (Dok. 2)
+                    Mode Tabel Permohonan
                   </label>
                   <select
                     value={transaction.modeTabelPermohonan || 'per_paket'}
@@ -653,7 +651,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                 <div className="sm:col-span-3">
                   <label className="block text-[10px] font-medium text-slate-600 mb-0.5">
-                    Sifat Surat Permohonan
+                    Sifat Surat
                   </label>
                   <input
                     type="text"
@@ -669,7 +667,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                 </div>
                 <div className="sm:col-span-3">
                   <label className="block text-[10px] font-medium text-slate-600 mb-0.5">
-                    Lampiran Permohonan
+                    Lampiran
                   </label>
                   <input
                     type="text"
@@ -685,7 +683,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                 </div>
                 <div className="sm:col-span-6">
                   <label className="block text-[10px] font-medium text-slate-600 mb-0.5">
-                    Perihal Surat Permohonan
+                    Perihal Surat
                   </label>
                   <input
                     type="text"
@@ -788,7 +786,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
                 <div>
                   <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
-                    Mulai Pelaksanaan (DPP)
+                    Mulai Pelaksanaan
                   </label>
                   <input
                     type="date"
@@ -804,7 +802,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
-                    Selesai Pelaksanaan (DPP)
+                    Selesai Pelaksanaan
                   </label>
                   <input
                     type="date"
@@ -820,7 +818,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
-                    Jangka Waktu (Hari Kalender)
+                    Jangka Waktu (Hari)
                   </label>
                   <input
                     type="number"
@@ -843,7 +841,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   <div className="flex items-center gap-1.5">
                     <ListOrdered className="w-3.5 h-3.5 text-indigo-600" />
                     <span className="text-[11px] font-bold text-indigo-950">
-                      Tabel Paraf Hierarki (Sebelah Kiri Tanda Tangan - Otomatis Seluruh Dokumen)
+                      Paraf Hierarki
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -931,7 +929,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2 font-semibold text-sm text-slate-800">
                 <Calculator className="w-4 h-4 text-indigo-600" />
-                B. Sumber Dana, Tahun Anggaran &amp; DPA / DPPA (Terpadu)
+                B. Sumber Dana &amp; DPA
               </div>
             </div>
 
@@ -970,7 +968,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="sm:col-span-3">
                 <label className="block text-[10px] font-bold text-indigo-800 mb-0.5">
-                  Sumber Dana APBD / APBD-P (RAB)
+                  Sumber Dana (RAB)
                 </label>
                 <input
                   type="text"
@@ -994,7 +992,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="sm:col-span-3">
                 <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
-                  Sumber Dana Singkat (Permohonan &amp; Kuitansi)
+                  Sumber Dana Singkat
                 </label>
                 <input
                   type="text"
@@ -1029,7 +1027,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="sm:col-span-4">
                 <label className="block text-[10px] font-bold text-emerald-800 mb-0.5">
-                  Sumber Dana Lengkap (KAK &amp; Ringkasan Kontrak)
+                  Sumber Dana Lengkap
                 </label>
                 <input
                   type="text"
@@ -1080,7 +1078,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               </div>
               <div className="sm:col-span-6">
                 <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
-                  Nomor DPA / DPPA (Permohonan, KPP, BAST &amp; Ringkasan Kontrak)
+                  Nomor DPA / DPPA
                 </label>
                 <input
                   type="text"
@@ -1137,7 +1135,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2 font-semibold text-sm text-slate-800">
                 <Layers className="w-4 h-4 text-indigo-600" />
-                C. Program, Kegiatan, Lokasi &amp; Kode Rekening (Terpadu)
+                C. Program, Lokasi &amp; Rekening
               </div>
               <button
                 type="button"
@@ -1145,7 +1143,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Tambah Kategori Rekening
+                Tambah Rekening
               </button>
             </div>
 
@@ -1238,7 +1236,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
                 <div className="sm:col-span-5">
                   <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
-                    Nama Lokasi Pekerjaan
+                    Lokasi Pekerjaan
                   </label>
                   <input
                     type="text"
@@ -1251,7 +1249,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                 </div>
                 <div className="sm:col-span-7">
                   <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
-                    Alamat Lengkap Lokasi Pekerjaan
+                    Alamat Lokasi
                   </label>
                   <input
                     type="text"
@@ -1268,7 +1266,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
             {/* Daftar Kategori Barang & Kode Rekening */}
             <div className="space-y-1.5 pt-2 border-t border-slate-100">
               <div className="text-[11px] font-bold text-slate-700">
-                Kategori Barang &amp; Kode Rekening Belanja
+                Kode Rekening Belanja
               </div>
               {transaction.kategoriRekening.map((kr, idx) => (
                 <div
@@ -1501,16 +1499,13 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                                 namaBarang: e.target.value,
                               }))
                             }
-                            placeholder="Contoh: Herbisida / Pupuk Urea / Jasa Pemeliharaan..."
+                            placeholder="Nama barang / jasa..."
                             className="w-full px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
                           />
                         </div>
                         <div className="lg:col-span-5">
-                          <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center justify-between">
-                            <span>Keterangan Spesifikasi</span>
-                            <span className="text-[10px] text-indigo-700 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
-                              Dok. 7 Spek Teknis
-                            </span>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Keterangan Spesifikasi
                           </label>
                           <input
                             type="text"
@@ -1521,7 +1516,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                                 keteranganSpesifikasi: e.target.value,
                               }))
                             }
-                            placeholder="Keterangan spesifikasi (kolom kanan Spek Teknis)..."
+                            placeholder="Keterangan spesifikasi..."
                             className="w-full px-3 py-1.5 text-xs sm:text-sm text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
                           />
                         </div>
@@ -1533,13 +1528,12 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                       <div className="flex flex-wrap items-center justify-between gap-1.5">
                         <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                           <Layers className="w-3.5 h-3.5 text-indigo-600" />
-                          Volume &amp; Satuan Kuantitas
+                          Volume &amp; Satuan
                         </span>
                         <div
                           className="text-xs font-bold text-slate-800 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-md truncate shadow-2xs"
-                          title={`Teks di dokumen: ${formatItemVolumeSatuan(item)}`}
+                          title={formatItemVolumeSatuan(item)}
                         >
-                          <span className="text-slate-500 font-normal mr-1">Teks Dokumen:</span>
                           <span className="text-indigo-900">{formatItemVolumeSatuan(item)}</span>
                           {item.volumeTambahan && item.volumeTambahan > 0 ? (
                             <span className="text-emerald-700 ml-1.5 font-semibold">
@@ -1565,7 +1559,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                                 volume: Math.max(0, Number(e.target.value)),
                               }))
                             }
-                            placeholder="Contoh: 10"
+                            placeholder="10"
                             className="w-full px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50/70 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
                           />
                         </div>
@@ -1584,7 +1578,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                                 satuan: e.target.value,
                               }))
                             }
-                            placeholder="Contoh: Liter, Kg, Bulan..."
+                            placeholder="Liter, Kg, Paket..."
                             className="w-full px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 bg-slate-50/70 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
                           />
                           <datalist id={`satuan-list-${item.id}`}>
@@ -1615,7 +1609,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                                 volumeTambahan: val,
                               }));
                             }}
-                            placeholder="Opsional (e.g. 3)"
+                            placeholder="Opsional"
                             className="w-full px-3 py-1.5 text-xs sm:text-sm font-bold text-indigo-950 bg-indigo-50/50 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-400 placeholder:font-normal placeholder:text-xs"
                           />
                         </div>
@@ -1634,7 +1628,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                                 satuanTambahan: e.target.value,
                               }))
                             }
-                            placeholder="Opsional (e.g. Orang)"
+                            placeholder="Opsional"
                             className="w-full px-3 py-1.5 text-xs sm:text-sm font-semibold text-indigo-950 bg-indigo-50/50 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-400 placeholder:font-normal placeholder:text-xs"
                           />
                           <datalist id={`satuan-tambahan-list-${item.id}`}>
@@ -1651,7 +1645,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                       {/* 1. Harga Pagu */}
                       <div className="bg-sky-50/60 border border-sky-200 rounded-lg p-2">
                         <label className="block text-[10px] font-bold text-sky-800 mb-0.5">
-                          1. Harga Pagu (Rp)
+                          Harga Pagu (Rp)
                         </label>
                         <input
                           type="number"
@@ -1671,7 +1665,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                       {/* 2. Harga HPS */}
                       <div className="bg-indigo-50/60 border border-indigo-200 rounded-lg p-2">
                         <label className="block text-[10px] font-bold text-indigo-800 mb-0.5">
-                          2. Harga HPS (Rp)
+                          Harga HPS (Rp)
                         </label>
                         <input
                           type="number"
@@ -1692,7 +1686,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                       {/* 3. Harga Kontrak (+Pajak) - Ketik Manual */}
                       <div className="bg-emerald-50/70 border border-emerald-300 rounded-lg p-2">
                         <label className="block text-[10px] font-bold text-emerald-900 mb-0.5">
-                          3. Harga Kontrak +Pajak (Rp)
+                          Kontrak +Pajak (Rp)
                         </label>
                         <input
                           type="number"
@@ -1717,7 +1711,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                       {/* 4. Harga Asli Kontrak / Sebelum Pajak (DPP) - Ketik Manual */}
                       <div className="bg-slate-100/80 border border-slate-300 rounded-lg p-2">
                         <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
-                          4. Harga Asli / DPP (Rp)
+                          Harga DPP (Rp)
                         </label>
                         <input
                           type="number"
@@ -1747,7 +1741,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                       {/* Quick Price Selection Pills */}
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs bg-slate-50 px-3 py-2 rounded-lg border border-slate-200/80">
                         <div className="text-slate-600 font-medium">
-                          Pilih Cepat Harga HPS:
+                          Mode HPS:
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5">
                           {(
@@ -2099,14 +2093,11 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     <div>
                       <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                         <FolderTree className="w-4 h-4 text-indigo-600" />
-                        <span>Pengelompokan Kode Rekening Belanja</span>
+                        <span>Kode Rekening Belanja</span>
                         <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                           {transaction.kategoriRekening.length} Rekening
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Tentukan kelompok kode rekening sebelum atau saat menambahkan pengadaan barang. Satu paket dapat memuat lebih dari satu kode rekening.
-                      </p>
                     </div>
                     <button
                       type="button"
@@ -2358,7 +2349,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs transition cursor-pointer ml-1"
                             >
                               <Plus className="w-3.5 h-3.5" />
-                              <span>Tambah Barang di Rekening Ini</span>
+                              <span>Tambah Barang</span>
                             </button>
                           </div>
                         </div>
@@ -2425,7 +2416,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     className="px-3.5 py-2.5 border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 hover:bg-indigo-50 text-indigo-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
-                    Tambah Kelompok Kode Rekening Baru
+                    Tambah Kode Rekening
                   </button>
                   <button
                     type="button"
@@ -2433,7 +2424,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     className="px-3.5 py-2.5 border-2 border-dashed border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
-                    Tambah Barang Baru (Umum)
+                    Tambah Barang Baru
                   </button>
                 </div>
               </div>
@@ -2491,7 +2482,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.namaDirektur}
                   onChange={(e) => updateKontrak({ namaDirektur: e.target.value })}
-                  placeholder="Nama Direktur / Pimpinan"
+                  placeholder="Nama direktur"
                   className="w-full px-2.5 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2514,7 +2505,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.alamatPerusahaan}
                   onChange={(e) => updateKontrak({ alamatPerusahaan: e.target.value })}
-                  placeholder="Alamat Kantor / Perusahaan Penyedia"
+                  placeholder="Alamat perusahaan"
                   className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2526,7 +2517,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.namaBank}
                   onChange={(e) => updateKontrak({ namaBank: e.target.value })}
-                  placeholder="Contoh: Bank Jatim / Mandiri / BRI"
+                  placeholder="Nama bank"
                   className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2550,7 +2541,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.npwpPenyedia}
                   onChange={(e) => updateKontrak({ npwpPenyedia: e.target.value })}
-                  placeholder="Nomor NPWP Penyedia (15/16 Digit)"
+                  placeholder="Nomor NPWP"
                   className="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2561,14 +2552,14 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
           <section className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs space-y-2.5">
             <div className="flex items-center gap-2 font-semibold text-sm text-slate-800 border-b border-slate-100 pb-2">
               <FileCheck2 className="w-4 h-4 text-emerald-600" />
-              B. Nomor &amp; Tanggal Kontrak (SP–BAPP)
+              B. Nomor &amp; Tanggal Kontrak
             </div>
 
             {/* Jadwal Pelaksanaan Kontrak / SP */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
               <div>
                 <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
-                  Tgl Mulai (SP &amp; SPMK)
+                  Tgl Mulai
                 </label>
                 <input
                   type="date"
@@ -2586,7 +2577,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
-                  Tgl Selesai (KPP–BAPP)
+                  Tgl Selesai
                 </label>
                 <input
                   type="date"
@@ -2647,7 +2638,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="p-2.5 rounded-lg border border-slate-200 space-y-1.5">
                 <div className="text-[11px] font-bold text-slate-700">
-                  11. Surat Perintah Mulai Kerja (SPMK)
+                  11. SPMK
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5">
                   <input
@@ -2668,7 +2659,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="p-2.5 rounded-lg border border-slate-200 space-y-1.5">
                 <div className="text-[11px] font-bold text-slate-700">
-                  13. Laporan Kemajuan Pekerjaan (KPP)
+                  13. KPP
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5">
                   <input
@@ -2689,7 +2680,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="p-2.5 rounded-lg border border-slate-200 space-y-1.5">
                 <div className="text-[11px] font-bold text-slate-700">
-                  14. BA Pemeriksaan Hasil Pekerjaan (BAHP)
+                  14. BAHP
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5">
                   <input
@@ -2710,7 +2701,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="p-2.5 rounded-lg border border-slate-200 space-y-1.5">
                 <div className="text-[11px] font-bold text-slate-700">
-                  15. Berita Acara Serah Terima (BAST)
+                  15. BAST
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5">
                   <input
@@ -2731,7 +2722,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
 
               <div className="p-2.5 rounded-lg border border-slate-200 space-y-1.5">
                 <div className="text-[11px] font-bold text-slate-700">
-                  16. BA Persetujuan Pembayaran (BAPP)
+                  16. BAPP
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5">
                   <input
@@ -2953,7 +2944,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
           <section className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs space-y-2.5">
             <div className="flex items-center gap-2 font-semibold text-sm text-slate-800 border-b border-slate-100 pb-2">
               <Receipt className="w-4 h-4 text-emerald-600" />
-              D. Kuitansi, Pembayaran &amp; Surat Tagihan (Dok. 17–18)
+              D. Kuitansi &amp; Tagihan
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -2965,7 +2956,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.nomorKuitansi}
                   onChange={(e) => updateKontrak({ nomorKuitansi: e.target.value })}
-                  placeholder="Nomor Kuitansi Pencairan LS (kosong jika belum ada)"
+                  placeholder="Nomor kuitansi"
                   className="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                 />
               </div>
@@ -2991,7 +2982,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                   type="text"
                   value={kontrak.nomorSuratTagihan}
                   onChange={(e) => updateKontrak({ nomorSuratTagihan: e.target.value })}
-                  placeholder="Nomor Invoice / Surat Tagihan Penyedia"
+                  placeholder="Nomor invoice / tagihan"
                   className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                 />
               </div>
@@ -3022,7 +3013,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
           <section className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs space-y-2.5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="font-semibold text-sm text-slate-800">
-                Narasi KAK &amp; TKDN (Dok. 4 &amp; 5)
+                Narasi KAK &amp; TKDN
               </div>
               <button
                 type="button"
@@ -3037,7 +3028,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pb-2 border-b border-slate-100">
               <div className="sm:col-span-3">
                 <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
-                  Nilai TKDN (DPP)
+                  Nilai TKDN
                 </label>
                 <input
                   type="text"
@@ -3050,7 +3041,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
               </div>
               <div className="sm:col-span-9">
                 <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
-                  Alasan / Keterangan TKDN (DPP)
+                  Keterangan TKDN
                 </label>
                 <input
                   type="text"
@@ -3123,7 +3114,7 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
           <section className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
               <div className="font-semibold text-sm text-slate-800">
-                Checklist Kelengkapan DPP (Dok. 1)
+                Checklist Kelengkapan DPP
               </div>
               <div className="flex gap-1.5">
                 <button
