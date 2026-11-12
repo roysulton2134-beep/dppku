@@ -129,6 +129,10 @@ export interface MasterData {
   subKegiatanDefault: string;
   lokasiPekerjaanNama: string;
   lokasiPekerjaanAlamat: string;
+
+  /** Daftar jabatan pada tabel Paraf Hierarki di sebelah kiri tanda tangan */
+  parafHierarki?: string[];
+  showParafHierarki?: boolean;
 }
 
 export type ChecklistValue = 'kosong' | 'ada' | 'tidak_ada';
@@ -274,6 +278,10 @@ export interface TransactionData {
 
   // Data Tahap 2: Kontrak (SP, SPMK), Pemeriksaan & Serah Terima (KPP, BAHP, BAST, BAPP), Ringkasan Kontrak & Kuitansi
   kontrak: ContractExecutionData;
+
+  /** Daftar jabatan pada tabel Paraf Hierarki di sebelah kiri tanda tangan */
+  parafHierarki?: string[];
+  showParafHierarki?: boolean;
 }
 
 export interface SavedDraft {

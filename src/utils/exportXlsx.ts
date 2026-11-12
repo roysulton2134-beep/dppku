@@ -103,7 +103,7 @@ export function exportProcurementToXlsx(
   rabRows.push([
     '',
     '',
-    'JUMLAH TOTAL (Termasuk PPN 11% + Ongkos Kirim)',
+    'JUMLAH (Termasuk Pajak + Ongkos Kirim jika ada)',
     '',
     '',
     '',
@@ -139,7 +139,7 @@ export function exportProcurementToXlsx(
     [],
     [
       'No.',
-      'JENIS BARANG',
+      'JENIS',
       'VOL',
       'SAT',
       'PAGU SATUAN (Rp)',

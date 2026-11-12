@@ -106,6 +106,14 @@ function normalizeMasterData(raw?: Partial<MasterData> | null): MasterData {
       ...DEFAULT_MASTER_DATA.tembusan,
       ...(raw.tembusan || {}),
     },
+    parafHierarki:
+      Array.isArray(raw.parafHierarki) && raw.parafHierarki.length > 0
+        ? raw.parafHierarki
+        : DEFAULT_MASTER_DATA.parafHierarki,
+    showParafHierarki:
+      typeof raw.showParafHierarki === 'boolean'
+        ? raw.showParafHierarki
+        : DEFAULT_MASTER_DATA.showParafHierarki ?? true,
   };
 }
 
@@ -306,6 +314,17 @@ function normalizeTransactionData(
 
   if (!merged.metodePengadaan || merged.metodePengadaan === 'M-bizmarket / Toko Daring') {
     merged.metodePengadaan = 'E-Purchasing Ekatalog V.6';
+  }
+
+  if (!Array.isArray(merged.parafHierarki) || merged.parafHierarki.length === 0) {
+    merged.parafHierarki = DEFAULT_TRANSACTION_DATA.parafHierarki || [
+      'Sekretaris Dinas',
+      'Kepala Bidang Sarana Prasarana Olahraga',
+      'Operator Layanan Operasional',
+    ];
+  }
+  if (typeof merged.showParafHierarki !== 'boolean') {
+    merged.showParafHierarki = true;
   }
 
   const dDates = getDefaultDates();
@@ -1272,12 +1291,20 @@ export function App() {
                   master={master}
                   summary={summary}
                   onChange={setTransaction}
+                  onMasterChange={setMaster}
                   onOpenRekapModal={() => setShowRekapModal(true)}
                 />
               ) : (
                 <MasterDataPanel
                   master={master}
-                  onChange={setMaster}
+                  onChange={(nextMaster) => {
+                    setMaster(nextMaster);
+                    setTransaction((prev) => ({
+                      ...prev,
+                      parafHierarki: nextMaster.parafHierarki,
+                      showParafHierarki: nextMaster.showParafHierarki,
+                    }));
+                  }}
                   onApplyDefaultsToTransaction={handleApplyDefaultsToTransaction}
                 />
               )}

@@ -559,16 +559,77 @@ function createBeritaAcaraBoxHeader(opts: {
   });
 }
 
+function createParafHierarkiDocxTable(
+  master: MasterData,
+  transaction?: TransactionData
+): Table | null {
+  const show = transaction?.showParafHierarki ?? master.showParafHierarki ?? true;
+  if (!show) return null;
+
+  const rawList =
+    transaction?.parafHierarki && transaction.parafHierarki.length > 0
+      ? transaction.parafHierarki
+      : master.parafHierarki && master.parafHierarki.length > 0
+      ? master.parafHierarki
+      : [
+          'Sekretaris Dinas',
+          'Kepala Bidang Sarana Prasarana Olahraga',
+          'Operator Layanan Operasional',
+        ];
+
+  const items = rawList.map((s) => s.trim()).filter(Boolean);
+  if (items.length === 0) return null;
+
+  const colW: [number, number] = [2650, 900];
+  return makeTable({
+    columnWidths: colW,
+    rows: [
+      new TableRow({
+        children: [
+          cell('PARAF HIERARKI', {
+            colSpan: 2,
+            widthDxa: colW[0] + colW[1],
+            align: AlignmentType.CENTER,
+            vAlign: VerticalAlign.CENTER,
+            size: 17,
+          }),
+        ],
+      }),
+      ...items.map(
+        (jabatan) =>
+          new TableRow({
+            children: [
+              cell(jabatan, {
+                widthDxa: colW[0],
+                align: AlignmentType.LEFT,
+                vAlign: VerticalAlign.CENTER,
+                size: 16,
+              }),
+              cell('', {
+                widthDxa: colW[1],
+                vAlign: VerticalAlign.CENTER,
+                size: 16,
+              }),
+            ],
+          })
+      ),
+    ],
+  });
+}
+
 function createPPKSignatureTable(
   master: MasterData,
   withSelakuPPK: boolean,
   tembusanLines?: string[],
-  totalWidth = CONTENT_W
+  totalWidth = CONTENT_W,
+  transaction?: TransactionData
 ): Table {
   const leftW = Math.round(totalWidth * 0.54);
   const rightW = totalWidth - leftW;
 
-  const leftParagraphs = tembusanLines
+  const parafTable = createParafHierarkiDocxTable(master, transaction);
+
+  const tembusanParagraphs = tembusanLines
     ? tembusanLines.map((line, i) =>
         p(line, {
           size: 19,
@@ -576,7 +637,21 @@ function createPPKSignatureTable(
           spacingAfter: 10,
         })
       )
-    : [p('')];
+    : [];
+
+  const leftChildren: (Paragraph | Table)[] = [];
+  if (parafTable) {
+    leftChildren.push(parafTable);
+    if (tembusanParagraphs.length > 0) {
+      leftChildren.push(p('', { spacingAfter: 40 }));
+    }
+  }
+  if (tembusanParagraphs.length > 0) {
+    leftChildren.push(...tembusanParagraphs);
+  }
+  if (leftChildren.length === 0) {
+    leftChildren.push(p(''));
+  }
 
   const jabatanKadis = [master.ppk.jabatanPrefix, master.ppk.jabatan]
     .filter(Boolean)
@@ -611,10 +686,12 @@ function createPPKSignatureTable(
     rows: [
       new TableRow({
         children: [
-          cell(leftParagraphs, {
-            widthDxa: leftW,
-            noBorder: true,
-            vAlign: VerticalAlign.BOTTOM,
+          new TableCell({
+            width: { size: leftW, type: WidthType.DXA },
+            borders: CELL_NO_BORDERS,
+            margins: PAD_TIGHT,
+            verticalAlign: tembusanParagraphs.length > 0 ? VerticalAlign.BOTTOM : VerticalAlign.CENTER,
+            children: leftChildren,
           }),
           cell(rightParagraphs, {
             widthDxa: rightW,
@@ -1123,6 +1200,8 @@ export async function exportProcurementToDocx(
   const doc2HeaderCols = [1050, 180, 3925, 4200]; // sum = 9355
   const doc2PaketCols = [650, 2705, 2800, 1600, 1600]; // sum = 9355
 
+  const doc2ParafTable = createParafHierarkiDocxTable(master, transaction);
+
   const doc2Elements: (Paragraph | Table)[] = [
     ...createKopElements(master, logoImg, bannerImg),
     makeTable({
@@ -1136,11 +1215,12 @@ export async function exportProcurementToDocx(
               [
                 p(`${master.kotaPenetapan}, ${tglPermohonanStr}`, {
                   size: 21,
-                  spacingAfter: 80,
+                  indentLeft: 960,
+                  spacingAfter: 60,
                 }),
                 p('Kepada', {
                   size: 21,
-                  indentLeft: 420,
+                  indentLeft: 960,
                   spacingAfter: 20,
                 }),
               ],
@@ -1166,15 +1246,21 @@ export async function exportProcurementToDocx(
             cell(
               [
                 p(
-                  'Yth.  Sdr.  Kepala Bagian Pengadaan Barang dan Jasa Kabupaten Malang',
+                  'Yth. Sdr.\tKepala Bagian Pengadaan Barang',
                   {
                     size: 21,
-                    align: AlignmentType.BOTH,
+                    align: AlignmentType.LEFT,
                     indentLeft: 960,
                     indentHanging: 960,
-                    spacingAfter: 40,
+                    spacingAfter: 10,
                   }
                 ),
+                p('dan Jasa Kabupaten Malang', {
+                  size: 21,
+                  align: AlignmentType.LEFT,
+                  indentLeft: 960,
+                  spacingAfter: 40,
+                }),
                 p('di', {
                   size: 21,
                   indentLeft: 960,
@@ -1362,7 +1448,13 @@ export async function exportProcurementToDocx(
       rows: [
         new TableRow({
           children: [
-            cell('', { widthDxa: 5155, noBorder: true }),
+            new TableCell({
+              width: { size: 5155, type: WidthType.DXA },
+              borders: CELL_NO_BORDERS,
+              margins: PAD_TIGHT,
+              verticalAlign: VerticalAlign.CENTER,
+              children: doc2ParafTable ? [doc2ParafTable] : [p('')],
+            }),
             cell(
               [
                 p(jabatanKadis, { size: 21, spacingAfter: 15 }),
@@ -1535,7 +1627,16 @@ export async function exportProcurementToDocx(
       rows: [
         new TableRow({
           children: [
-            cell('', { widthDxa: 4855, noBorder: true }),
+            new TableCell({
+              width: { size: 4855, type: WidthType.DXA },
+              borders: CELL_NO_BORDERS,
+              margins: PAD_TIGHT,
+              verticalAlign: VerticalAlign.CENTER,
+              children: (() => {
+                const t = createParafHierarkiDocxTable(master, transaction);
+                return t ? [t] : [p('')];
+              })(),
+            }),
             new TableCell({
               width: { size: 4500, type: WidthType.DXA },
               borders: CELL_NO_BORDERS,
@@ -1851,11 +1952,17 @@ export async function exportProcurementToDocx(
       'Demikian Dokumen Persiapan Pengadaan ini dibuat untuk digunakan sebagai dasar pelaksanaan pengadaan. Pelaksanaan pengadaan berdasarkan prioritas penggunaan produk dalam negeri dan prioritas penggunaan produk dari penyedia dengan kualifikasi usaha kecil serta koperasi.',
       { size: 19, align: AlignmentType.BOTH, spacingBefore: 50, spacingAfter: 60 }
     ),
-    createPPKSignatureTable(master, true, [
-      'Tembusan :',
-      `Yth. Sdr. ${master.tembusan.jabatan}`,
-      `       ${master.tembusan.instansi}.`,
-    ]),
+    createPPKSignatureTable(
+      master,
+      true,
+      [
+        'Tembusan :',
+        `Yth. Sdr. ${master.tembusan.jabatan}`,
+        `       ${master.tembusan.instansi}.`,
+      ],
+      CONTENT_W,
+      transaction
+    ),
   ];
 
   // ============================================================================
@@ -2041,7 +2148,7 @@ export async function exportProcurementToDocx(
       ],
     }),
     p('', { spacingAfter: 60 }),
-    createPPKSignatureTable(master, true),
+    createPPKSignatureTable(master, true, undefined, CONTENT_W, transaction),
   ];
 
   // ============================================================================
@@ -2107,7 +2214,7 @@ export async function exportProcurementToDocx(
   rabRows.push(
     new TableRow({
       children: [
-        cell('JUMLAH (termasuk PPN + Ongkos Kirim)', {
+        cell('JUMLAH (Termasuk Pajak + Ongkos Kirim jika ada)', {
           bold: true,
           align: AlignmentType.CENTER,
           colSpan: 4,
@@ -2193,7 +2300,7 @@ export async function exportProcurementToDocx(
       rows: rabRows,
     }),
     p('', { spacingAfter: 100 }),
-    createPPKSignatureTable(master, true),
+    createPPKSignatureTable(master, true, undefined, CONTENT_W, transaction),
   ];
 
   // ============================================================================
@@ -2331,7 +2438,7 @@ export async function exportProcurementToDocx(
       rows: spekRows,
     }),
     p('', { spacingAfter: 60 }),
-    createPPKSignatureTable(master, true),
+    createPPKSignatureTable(master, true, undefined, CONTENT_W, transaction),
   ];
 
   // ============================================================================
@@ -2348,7 +2455,7 @@ export async function exportProcurementToDocx(
           rowSpan: 2,
           widthDxa: riwCols[0],
         }),
-        cell('JENIS BARANG', {
+        cell('JENIS', {
           bold: true,
           size: 16,
           align: AlignmentType.CENTER,
@@ -2609,7 +2716,7 @@ export async function exportProcurementToDocx(
       rows: riwRows,
     }),
     p('', { spacingAfter: 50 }),
-    createPPKSignatureTable(master, true, undefined, CONTENT_W_LANDSCAPE),
+    createPPKSignatureTable(master, true, undefined, CONTENT_W_LANDSCAPE, transaction),
   ];
 
   // ============================================================================

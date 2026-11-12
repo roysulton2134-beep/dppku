@@ -60,6 +60,7 @@ interface TransactionFormPanelProps {
   master: MasterData;
   summary: ComputedProcurementSummary;
   onChange: (next: TransactionData) => void;
+  onMasterChange?: (next: MasterData) => void;
   onOpenRekapModal?: () => void;
 }
 
@@ -95,10 +96,22 @@ const SATUAN_OPTIONS = [
 
 export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
   transaction,
+  master,
   summary,
   onChange,
+  onMasterChange,
   onOpenRekapModal,
 }) => {
+  const parafList =
+    transaction.parafHierarki && transaction.parafHierarki.length > 0
+      ? transaction.parafHierarki
+      : master.parafHierarki && master.parafHierarki.length > 0
+      ? master.parafHierarki
+      : [
+          'Sekretaris Dinas',
+          'Kepala Bidang Sarana Prasarana Olahraga',
+          'Operator Layanan Operasional',
+        ];
   const [activeSubTab, setActiveSubTab] = useState<
     'utama' | 'barang' | 'kontrak' | 'kak_checklist'
   >('barang');
@@ -821,6 +834,93 @@ export const TransactionFormPanel: React.FC<TransactionFormPanelProps> = ({
                     }
                     className="w-full px-2 py-1 text-xs font-bold bg-white border border-slate-200 rounded-lg"
                   />
+                </div>
+              </div>
+
+              {/* Pengaturan Paraf Hierarki (Sebelah Kiri Tanda Tangan) */}
+              <div className="bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-200/80 space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <ListOrdered className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="text-[11px] font-bold text-indigo-950">
+                      Tabel Paraf Hierarki (Sebelah Kiri Tanda Tangan - Otomatis Seluruh Dokumen)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={
+                          transaction.showParafHierarki !== undefined
+                            ? transaction.showParafHierarki
+                            : master.showParafHierarki !== false
+                        }
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          onChange({ ...transaction, showParafHierarki: checked });
+                          if (onMasterChange) {
+                            onMasterChange({ ...master, showParafHierarki: checked });
+                          }
+                        }}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span>Tampilkan</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextList = [...parafList, ''];
+                        onChange({ ...transaction, parafHierarki: nextList });
+                        if (onMasterChange) {
+                          onMasterChange({ ...master, parafHierarki: nextList });
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Tambah Baris</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {parafList.map((jabatan, idx) => (
+                    <div key={idx} className="flex items-center gap-1">
+                      <span className="text-[10px] font-bold text-slate-500 w-4 shrink-0">
+                        {idx + 1}.
+                      </span>
+                      <input
+                        type="text"
+                        value={jabatan}
+                        placeholder={`Jabatan Paraf ${idx + 1}`}
+                        onChange={(e) => {
+                          const nextList = [...parafList];
+                          nextList[idx] = e.target.value;
+                          onChange({ ...transaction, parafHierarki: nextList });
+                          if (onMasterChange) {
+                            onMasterChange({ ...master, parafHierarki: nextList });
+                          }
+                        }}
+                        className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      {parafList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextList = parafList.filter((_, i) => i !== idx);
+                            onChange({ ...transaction, parafHierarki: nextList });
+                            if (onMasterChange) {
+                              onMasterChange({ ...master, parafHierarki: nextList });
+                            }
+                          }}
+                          className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                          title="Hapus baris paraf"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

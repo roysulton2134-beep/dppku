@@ -603,6 +603,87 @@ export const MasterDataPanel: React.FC<MasterDataPanelProps> = ({
             </div>
           </div>
         </div>
+
+        {/* E. Tabel Paraf Hierarki (Sebelah Kiri Tanda Tangan) */}
+        <div className="p-3 rounded-lg bg-indigo-50/40 border border-indigo-200/80 space-y-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
+              E. Tabel Paraf Hierarki (Sebelah Kiri Tanda Tangan - Otomatis Seluruh Dokumen)
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={master.showParafHierarki !== false}
+                  onChange={(e) =>
+                    onChange({ ...master, showParafHierarki: e.target.checked })
+                  }
+                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span>Tampilkan Tabel Paraf Hierarki</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  const currentList =
+                    master.parafHierarki && master.parafHierarki.length > 0
+                      ? master.parafHierarki
+                      : [
+                          'Sekretaris Dinas',
+                          'Kepala Bidang Sarana Prasarana Olahraga',
+                          'Operator Layanan Operasional',
+                        ];
+                  onChange({ ...master, parafHierarki: [...currentList, ''] });
+                }}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Tambah Baris</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {(master.parafHierarki && master.parafHierarki.length > 0
+              ? master.parafHierarki
+              : [
+                  'Sekretaris Dinas',
+                  'Kepala Bidang Sarana Prasarana Olahraga',
+                  'Operator Layanan Operasional',
+                ]
+            ).map((jabatan, idx, arr) => (
+              <div key={idx} className="flex items-center gap-1">
+                <span className="text-xs font-bold text-slate-500 w-4 shrink-0">
+                  {idx + 1}.
+                </span>
+                <input
+                  type="text"
+                  value={jabatan}
+                  placeholder={`Jabatan Paraf ${idx + 1}`}
+                  onChange={(e) => {
+                    const nextList = [...arr];
+                    nextList[idx] = e.target.value;
+                    onChange({ ...master, parafHierarki: nextList });
+                  }}
+                  className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {arr.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextList = arr.filter((_, i) => i !== idx);
+                      onChange({ ...master, parafHierarki: nextList });
+                    }}
+                    className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                    title="Hapus baris paraf"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* 3. DASAR HUKUM STANDAR */}

@@ -84,6 +84,62 @@ export function formatAngkaStripDoc(val: number): string {
 }
 
 /**
+ * TABEL PARAF HIERARKI (DI SEBELAH KIRI TANDA TANGAN)
+ */
+export const ParafHierarkiTable: React.FC<{
+  master: MasterData;
+  transaction: TransactionData;
+}> = ({ master, transaction }) => {
+  const showParaf =
+    transaction.showParafHierarki !== undefined
+      ? transaction.showParafHierarki
+      : master.showParafHierarki !== undefined
+      ? master.showParafHierarki
+      : true;
+
+  if (!showParaf) return <div />;
+
+  const rawList =
+    transaction.parafHierarki && transaction.parafHierarki.length > 0
+      ? transaction.parafHierarki
+      : master.parafHierarki && master.parafHierarki.length > 0
+      ? master.parafHierarki
+      : [
+          'Sekretaris Dinas',
+          'Kepala Bidang Sarana Prasarana Olahraga',
+          'Operator Layanan Operasional',
+        ];
+
+  const rows = rawList.filter((r) => r.trim() !== '');
+  if (rows.length === 0) return <div />;
+
+  return (
+    <table className="w-[248px] border-collapse text-[8.5pt] leading-[1.2] text-black">
+      <thead>
+        <tr>
+          <th
+            colSpan={2}
+            className="border border-black py-1 px-2 text-center font-normal uppercase"
+          >
+            PARAF HIERARKI
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((jabatan, idx) => (
+          <tr key={idx}>
+            <td className="w-[186px] border border-black py-1 px-2 text-left align-middle">
+              {jabatan}
+            </td>
+            <td className="w-[62px] border border-black py-1 px-2" />
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+/**
  * 1. CHECKLIST KELENGKAPAN PERMOHONAN PENGADAAN
  */
 export const Doc1Checklist: React.FC<DocProps> = ({ master, transaction }) => {
@@ -321,12 +377,12 @@ export const Doc2SuratPermohonan: React.FC<DocProps> = ({
     <div className="doc-page text-[10.5pt] leading-[1.35] text-black">
       <KopSurat master={master} />
 
-      <div className="flex justify-end mb-1">
-        <div className="w-[290px] text-left">
-          <div>
+      <div className="flex justify-end mb-0.5">
+        <div className="w-[300px] text-left">
+          <div className="pl-[62px]">
             {master.kotaPenetapan}, {tglSurat}
           </div>
-          <div className="mt-2 pl-6">Kepada</div>
+          <div className="mt-1.5 pl-[62px]">Kepada</div>
         </div>
       </div>
 
@@ -339,15 +395,14 @@ export const Doc2SuratPermohonan: React.FC<DocProps> = ({
             <td className="align-top py-0.5 pr-4">
               {transaction.nomorSuratPermohonan}
             </td>
-            <td className="w-[290px] align-top py-0.5" rowSpan={4}>
+            <td className="w-[300px] align-top py-0.5" rowSpan={4}>
               <div className="flex items-start">
-                <span className="w-[34px] shrink-0">Yth.</span>
-                <span className="w-[34px] shrink-0">Sdr.</span>
-                <span className="flex-1 text-justify">
+                <span className="w-[62px] shrink-0">Yth. Sdr.</span>
+                <span className="flex-1 text-left">
                   Kepala Bagian Pengadaan Barang dan Jasa Kabupaten Malang
                 </span>
               </div>
-              <div className="pl-[68px] mt-1">di</div>
+              <div className="pl-[65px] mt-1">di</div>
               <div className="pl-[96px] font-bold tracking-[0.2em] mt-0.5">
                 {master.pejabatPengadaan.kotaTujuan || 'K E P A N J E N'}
               </div>
@@ -438,7 +493,9 @@ export const Doc2SuratPermohonan: React.FC<DocProps> = ({
         </p>
       </div>
 
-      <div className="flex justify-end mt-2">
+      <div className="flex justify-between items-center mt-2 pl-3">
+        <ParafHierarkiTable master={master} transaction={transaction} />
+
         <div className="w-[290px] text-left">
           <div>
             {[master.ppk.jabatanPrefix, master.ppk.jabatan]
@@ -537,7 +594,10 @@ export const Doc3SuratTugas: React.FC<DocProps> = ({ master, transaction }) => {
         Demikian untuk dilaksanakan dengan penuh tanggung jawab.
       </p>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div>
+          <ParafHierarkiTable master={master} transaction={transaction} />
+        </div>
         <div className="w-[310px]">
           <table className="w-full border-collapse mb-1 text-[10.5pt]">
             <tbody>
@@ -746,10 +806,13 @@ export const Doc4DPP: React.FC<DocProps> = ({ master, transaction, summary }) =>
       </p>
 
       <div className="flex justify-between items-end mt-1">
-        <div className="text-[9pt]">
-          <div>Tembusan :</div>
-          <div>Yth. Sdr. {master.tembusan.jabatan}</div>
-          <div className="pl-12">{master.tembusan.instansi}.</div>
+        <div className="space-y-2">
+          <ParafHierarkiTable master={master} transaction={transaction} />
+          <div className="text-[9pt]">
+            <div>Tembusan :</div>
+            <div>Yth. Sdr. {master.tembusan.jabatan}</div>
+            <div className="pl-12">{master.tembusan.instansi}.</div>
+          </div>
         </div>
 
         <div className="w-[290px] text-[9.5pt] text-left">
@@ -886,7 +949,10 @@ export const Doc5KAK: React.FC<DocProps> = ({ master, transaction, summary }) =>
         </tbody>
       </table>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div>
+          <ParafHierarkiTable master={master} transaction={transaction} />
+        </div>
         <div className="w-[290px] text-[9.5pt] text-left">
           <div>
             {[master.ppk.jabatanPrefix, master.ppk.jabatan].filter(Boolean).join(' ')}
@@ -982,7 +1048,7 @@ export const Doc6RAB: React.FC<DocProps> = ({ master, transaction, summary }) =>
           ))}
           <tr className="font-bold">
             <td colSpan={4} className="text-center">
-              JUMLAH (termasuk PPN + Ongkos Kirim)
+              JUMLAH (Termasuk Pajak + Ongkos Kirim jika ada)
             </td>
             <td className="text-right">{formatRupiahDoc(summary.totalPenetapan)}</td>
           </tr>
@@ -994,7 +1060,10 @@ export const Doc6RAB: React.FC<DocProps> = ({ master, transaction, summary }) =>
         </tbody>
       </table>
 
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-between items-center mt-4">
+        <div>
+          <ParafHierarkiTable master={master} transaction={transaction} />
+        </div>
         <div className="w-[290px] text-[10pt] text-left">
           <div>
             {[master.ppk.jabatanPrefix, master.ppk.jabatan].filter(Boolean).join(' ')}
@@ -1120,7 +1189,10 @@ export const Doc7SpekTeknis: React.FC<DocProps> = ({ master, transaction }) => {
         </tbody>
       </table>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div>
+          <ParafHierarkiTable master={master} transaction={transaction} />
+        </div>
         <div className="w-[290px] text-[9.5pt] text-left">
           <div>
             {[master.ppk.jabatanPrefix, master.ppk.jabatan].filter(Boolean).join(' ')}
@@ -1183,7 +1255,7 @@ export const Doc8RiwayatSurvei: React.FC<DocProps> = ({
             <th rowSpan={2} className="w-[28px]">
               No.
             </th>
-            <th rowSpan={2}>JENIS BARANG</th>
+            <th rowSpan={2}>JENIS</th>
             <th rowSpan={2} className="w-[38px]">
               VOL
             </th>
@@ -1265,7 +1337,10 @@ export const Doc8RiwayatSurvei: React.FC<DocProps> = ({
         </tbody>
       </table>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div>
+          <ParafHierarkiTable master={master} transaction={transaction} />
+        </div>
         <div className="w-[270px] text-[9pt] text-left">
           <div>
             {[master.ppk.jabatanPrefix, master.ppk.jabatan].filter(Boolean).join(' ')}

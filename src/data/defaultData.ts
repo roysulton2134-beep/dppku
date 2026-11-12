@@ -91,7 +91,20 @@ export const DEFAULT_MASTER_DATA: MasterData = {
   lokasiPekerjaanNama: 'Kolam Renang Internasional Kanjuruhan',
   lokasiPekerjaanAlamat:
     'Jl. Trunojoyo Kompleks Stadion Kanjuruhan, Kecamatan Kepanjen, Kabupaten Malang',
+
+  parafHierarki: [
+    'Sekretaris Dinas',
+    'Kepala Bidang Sarana Prasarana Olahraga',
+    'Operator Layanan Operasional',
+  ],
+  showParafHierarki: true,
 };
+
+export const DEFAULT_PARAF_HIERARKI: string[] = [
+  'Sekretaris Dinas',
+  'Kepala Bidang Sarana Prasarana Olahraga',
+  'Operator Layanan Operasional',
+];
 
 export function getDefaultDates(baseDate = new Date()) {
   const y = baseDate.getFullYear();
@@ -522,4 +535,6 @@ export const DEFAULT_TRANSACTION_DATA: TransactionData = {
     nomorSuratTagihan: '',
     tanggalSuratTagihan: defaultDates.tanggalSuratTagihan,
   },
+  parafHierarki: [...DEFAULT_PARAF_HIERARKI],
+  showParafHierarki: true,
 };
