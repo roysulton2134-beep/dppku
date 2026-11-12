@@ -282,6 +282,10 @@ export interface TransactionData {
   /** Daftar jabatan pada tabel Paraf Hierarki di sebelah kiri tanda tangan */
   parafHierarki?: string[];
   showParafHierarki?: boolean;
+
+  /** Editan manual pada tampilan Preview per dokumen (khusus untuk paket ini) */
+  customPreviewHtml?: Partial<Record<string, string>>;
+  customPreviewBaseHtml?: Partial<Record<string, string>>;
 }
 
 export interface SavedDraft {

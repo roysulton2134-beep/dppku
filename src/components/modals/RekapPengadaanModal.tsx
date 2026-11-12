@@ -104,10 +104,22 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
     try {
       const remoteList = await fetchRemoteDrafts();
       if (remoteList && remoteList.length > 0) {
-        // Gabungkan remote & local (utamakan remote jika id sama)
+        // Gabungkan remote & local (gunakan versi dengan waktu simpan terbaru jika id sama)
+        const localMap = new Map(sortedLocal.map((x) => [x.id, x]));
         const remoteIds = new Set(remoteList.map((x) => x.id));
+        const mergedRemote = remoteList.map((rem) => {
+          const loc = localMap.get(rem.id);
+          if (loc) {
+            const locTime = new Date(loc.savedAt || 0).getTime();
+            const remTime = new Date(rem.savedAt || 0).getTime();
+            if (locTime > remTime) {
+              return { ...loc, isOnline: true };
+            }
+          }
+          return rem;
+        });
         const merged = [
-          ...remoteList,
+          ...mergedRemote,
           ...sortedLocal.filter((x) => !remoteIds.has(x.id)).map((x) => ({ ...x, isOnline: false })),
         ];
         const sortedMerged = sortDraftsList(merged);

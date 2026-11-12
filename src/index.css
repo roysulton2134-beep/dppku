@@ -32,6 +32,15 @@
   padding: 15mm 18mm 15mm 20mm;
 }
 
+.editable-doc-entry {
+  outline: none;
+}
+
+.editable-doc-entry .doc-page {
+  cursor: text;
+  outline: none;
+}
+
 .doc-table {
   border-collapse: collapse;
   width: 100%;
@@ -110,7 +119,8 @@
     break-after: page;
   }
 
-  .doc-page:last-child {
+  .print-scale-wrapper > .doc-page:last-child,
+  .print-scale-wrapper > .editable-doc-entry:last-child > .doc-page:last-child {
     page-break-after: auto !important;
     break-after: auto !important;
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Building2,
   CheckCircle2,
@@ -55,10 +55,11 @@ import {
   Doc17RingkasanKontrak,
   Doc18Kuitansi,
 } from './components/documents/ContractDocumentPages';
+import { EditableDocEntry } from './components/documents/EditableDocEntry';
 import { TransactionFormPanel } from './components/forms/TransactionFormPanel';
 import { MasterDataPanel } from './components/forms/MasterDataPanel';
 import { RekapPengadaanModal } from './components/modals/RekapPengadaanModal';
-import { getFirestoreInstance } from './services/firebase';
+import { getFirestoreInstance, saveRemoteDraft } from './services/firebase';
 import { exportProcurementToDocx } from './utils/exportDocx';
 import { formatRupiahDoc } from './utils/terbilang';
 import { cleanDoubleNumber, extractSeqNo } from './utils/documentNumbers';
@@ -206,6 +207,14 @@ function normalizeTransactionData(
       ...DEFAULT_TRANSACTION_DATA.kontrak,
       ...(raw.kontrak || {}),
     },
+    customPreviewHtml:
+      raw.customPreviewHtml && typeof raw.customPreviewHtml === 'object'
+        ? { ...raw.customPreviewHtml }
+        : {},
+    customPreviewBaseHtml:
+      raw.customPreviewBaseHtml && typeof raw.customPreviewBaseHtml === 'object'
+        ? { ...raw.customPreviewBaseHtml }
+        : {},
   };
 
   // Migrasi otomatis kategori legacy 'Bahan untuk Kegiatan Kantor-Perabot Kantor'
@@ -697,9 +706,59 @@ export function App() {
     }
   };
 
+  const [packageRevision, setPackageRevision] = useState(0);
+  const remoteSyncTimerRef = useRef<number | null>(null);
+
+  const handleUpdateCustomPreviewHtml = useCallback(
+    (docId: string, html: string, baseHtml: string) => {
+      const nowIso = new Date().toISOString();
+      setTransaction((prev) => {
+        const nextTx: TransactionData = {
+          ...prev,
+          updatedAt: nowIso,
+          customPreviewHtml: {
+            ...(prev.customPreviewHtml || {}),
+            [docId]: html,
+          },
+          customPreviewBaseHtml: {
+            ...(prev.customPreviewBaseHtml || {}),
+            [docId]: baseHtml,
+          },
+        };
+
+        if (activeDraftId) {
+          setSavedDrafts((prevDrafts) => {
+            const idx = prevDrafts.findIndex((d) => d.id === activeDraftId);
+            if (idx === -1) return prevDrafts;
+            const updatedDraft: SavedDraft = {
+              ...prevDrafts[idx],
+              savedAt: nowIso,
+              transaction: nextTx,
+            };
+            const nextList = prevDrafts.map((d, i) => (i === idx ? updatedDraft : d));
+            try {
+              localStorage.setItem(LS_DRAFTS_KEY, JSON.stringify(nextList));
+            } catch {}
+            if (remoteSyncTimerRef.current !== null) {
+              window.clearTimeout(remoteSyncTimerRef.current);
+            }
+            remoteSyncTimerRef.current = window.setTimeout(() => {
+              saveRemoteDraft(updatedDraft).catch(() => {});
+            }, 1200);
+            return nextList;
+          });
+        }
+
+        return nextTx;
+      });
+    },
+    [activeDraftId]
+  );
+
   // Handlers untuk Rekapitulasi Pengadaan
   const handleLoadDraftFromRekap = (draft: SavedDraft) => {
     setActiveDraftId(draft.id);
+    setPackageRevision((r) => r + 1);
     setTransaction(normalizeTransactionData(draft.transaction));
     if (draft.master) setMaster(normalizeMasterData(draft.master));
     showToast(
@@ -709,6 +768,7 @@ export function App() {
 
   const handlePrintDraftDirectly = (draft: SavedDraft) => {
     setActiveDraftId(draft.id);
+    setPackageRevision((r) => r + 1);
     setTransaction(normalizeTransactionData(draft.transaction));
     if (draft.master) setMaster(normalizeMasterData(draft.master));
     setForcePrintAll(true);
@@ -726,6 +786,7 @@ export function App() {
 
   const handleNewBlankPacket = () => {
     setActiveDraftId(null);
+    setPackageRevision((r) => r + 1);
     const dates = getDefaultDates();
     const randomSuffix = String(Math.floor(Math.random() * 90) + 10);
     const newTx: TransactionData = {
@@ -737,6 +798,8 @@ export function App() {
       kakMaksud: '',
       kakTujuan: '',
       modeTabelPermohonan: 'per_paket',
+      customPreviewHtml: {},
+      customPreviewBaseHtml: {},
       nomorSuratPermohonan: `000.3.1/${randomSuffix}/35.07.318/${dates.year}`,
       tanggalSuratPermohonan: dates.tanggalSuratPermohonan,
       nomorSuratTugas: `800.1.11.1/ ${randomSuffix}.sarpras-ST/35.07.318/${dates.year}`,
@@ -838,6 +901,7 @@ export function App() {
       try {
         const parsed = JSON.parse(String(reader.result));
         if (parsed.transaction) {
+          setPackageRevision((r) => r + 1);
           setTransaction(normalizeTransactionData(parsed.transaction));
         }
         if (parsed.master) {
@@ -1494,7 +1558,16 @@ export function App() {
                   return effectiveDocTab === entry.id;
                 })
                 .map((entry) => (
-                  <React.Fragment key={entry.id}>{entry.element}</React.Fragment>
+                  <EditableDocEntry
+                    key={entry.id}
+                    docId={entry.id}
+                    packageKey={`${activeDraftId || 'local'}::${transaction.id}::${packageRevision}`}
+                    customHtml={transaction.customPreviewHtml?.[entry.id]}
+                    customBaseHtml={transaction.customPreviewBaseHtml?.[entry.id]}
+                    onUpdateCustomHtml={handleUpdateCustomPreviewHtml}
+                  >
+                    {entry.element}
+                  </EditableDocEntry>
                 ))}
             </div>
           </div>
@@ -1612,6 +1685,7 @@ export function App() {
                             <button
                               type="button"
                               onClick={() => {
+                                setPackageRevision((r) => r + 1);
                                 setTransaction(normalizeTransactionData(d.transaction));
                                 if (d.master) setMaster(normalizeMasterData(d.master));
                                 setShowDraftModal(false);
@@ -1653,6 +1727,7 @@ export function App() {
                       )
                     ) {
                       setActiveDraftId(null);
+                      setPackageRevision((r) => r + 1);
                       setMaster(DEFAULT_MASTER_DATA);
                       setTransaction(DEFAULT_TRANSACTION_DATA);
                       setShowDraftModal(false);

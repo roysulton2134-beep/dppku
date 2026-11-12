@@ -97,7 +97,7 @@ export const ParafHierarkiTable: React.FC<{
       ? master.showParafHierarki
       : true;
 
-  if (!showParaf) return <div />;
+  if (!showParaf) return <div data-paraf-hierarki="true" />;
 
   const rawList =
     transaction.parafHierarki && transaction.parafHierarki.length > 0
@@ -111,31 +111,33 @@ export const ParafHierarkiTable: React.FC<{
         ];
 
   const rows = rawList.filter((r) => r.trim() !== '');
-  if (rows.length === 0) return <div />;
+  if (rows.length === 0) return <div data-paraf-hierarki="true" />;
 
   return (
-    <table className="w-[248px] border-collapse text-[8.5pt] leading-[1.2] text-black">
-      <thead>
-        <tr>
-          <th
-            colSpan={2}
-            className="border border-black py-1 px-2 text-center font-normal uppercase"
-          >
-            PARAF HIERARKI
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((jabatan, idx) => (
-          <tr key={idx}>
-            <td className="w-[186px] border border-black py-1 px-2 text-left align-middle">
-              {jabatan}
-            </td>
-            <td className="w-[62px] border border-black py-1 px-2" />
+    <div data-paraf-hierarki="true">
+      <table className="w-[248px] border-collapse text-[8.5pt] leading-[1.2] text-black">
+        <thead>
+          <tr>
+            <th
+              colSpan={2}
+              className="border border-black py-1 px-2 text-center font-normal uppercase"
+            >
+              PARAF HIERARKI
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((jabatan, idx) => (
+            <tr key={idx}>
+              <td className="w-[186px] border border-black py-1 px-2 text-left align-middle">
+                {jabatan}
+              </td>
+              <td className="w-[62px] border border-black py-1 px-2" />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
