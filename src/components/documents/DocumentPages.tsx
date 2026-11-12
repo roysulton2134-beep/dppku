@@ -807,14 +807,9 @@ export const Doc4DPP: React.FC<DocProps> = ({ master, transaction, summary }) =>
         kualifikasi usaha kecil serta koperasi.
       </p>
 
-      <div className="flex justify-between items-end mt-1">
-        <div className="space-y-2">
+      <div className="flex justify-between items-center mt-1">
+        <div className="pt-5">
           <ParafHierarkiTable master={master} transaction={transaction} />
-          <div className="text-[9pt]">
-            <div>Tembusan :</div>
-            <div>Yth. Sdr. {master.tembusan.jabatan}</div>
-            <div className="pl-12">{master.tembusan.instansi}.</div>
-          </div>
         </div>
 
         <div className="w-[290px] text-[9.5pt] text-left">
@@ -828,6 +823,12 @@ export const Doc4DPP: React.FC<DocProps> = ({ master, transaction, summary }) =>
           <div>{master.ppk.pangkat}</div>
           <div>NIP {master.ppk.nip}</div>
         </div>
+      </div>
+
+      <div className="text-[9pt] text-left mt-1">
+        <div>Tembusan :</div>
+        <div>Yth. Sdr. {master.tembusan.jabatan}</div>
+        <div className="pl-12">{master.tembusan.instansi}.</div>
       </div>
     </div>
   );
