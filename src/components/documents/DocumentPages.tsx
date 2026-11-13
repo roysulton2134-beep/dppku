@@ -487,7 +487,7 @@ export const Doc2SuratPermohonan: React.FC<DocProps> = ({
 
         <p className="text-justify indent-9 mb-2.5 leading-relaxed">
           Bersama ini dilampirkan dokumen-dokumen dan data-data kelengkapan proses
-          lelang sebagaimana terlampir.
+          pengadaan sebagaimana terlampir.
         </p>
 
         <p className="text-justify indent-9 mb-6 leading-relaxed">
@@ -507,7 +507,7 @@ export const Doc2SuratPermohonan: React.FC<DocProps> = ({
           <div>Selaku</div>
           <div>Pejabat Pembuat Komitmen</div>
           <div className="h-16" />
-          <div className="font-bold underline">{master.ppk.nama}</div>
+          <div>{master.ppk.nama}</div>
           <div>{master.ppk.pangkat || 'Pembina Utama Muda'}</div>
           <div>NIP. {master.ppk.nip}</div>
         </div>
@@ -620,7 +620,7 @@ export const Doc3SuratTugas: React.FC<DocProps> = ({ master, transaction }) => {
               {[master.ppk.jabatanPrefix, master.ppk.jabatan].filter(Boolean).join(' ')}
             </div>
             <div className="h-16" />
-            <div className="font-bold underline">{master.ppk.nama}</div>
+            <div>{master.ppk.nama}</div>
             <div>{master.ppk.pangkat}</div>
             <div>NIP {master.ppk.nip}</div>
           </div>
@@ -819,7 +819,7 @@ export const Doc4DPP: React.FC<DocProps> = ({ master, transaction, summary }) =>
           <div>selaku</div>
           <div>Pejabat Pembuat Komitmen</div>
           <div className="h-12" />
-          <div className="font-bold underline">{master.ppk.nama}</div>
+          <div>{master.ppk.nama}</div>
           <div>{master.ppk.pangkat}</div>
           <div>NIP {master.ppk.nip}</div>
         </div>
@@ -963,7 +963,7 @@ export const Doc5KAK: React.FC<DocProps> = ({ master, transaction, summary }) =>
           <div>selaku</div>
           <div>Pejabat Pembuat Komitmen</div>
           <div className="h-14" />
-          <div className="font-bold underline">{master.ppk.nama}</div>
+          <div>{master.ppk.nama}</div>
           <div>{master.ppk.pangkat}</div>
           <div>NIP {master.ppk.nip}</div>
         </div>
@@ -1074,7 +1074,7 @@ export const Doc6RAB: React.FC<DocProps> = ({ master, transaction, summary }) =>
           <div>selaku</div>
           <div>Pejabat Pembuat Komitmen</div>
           <div className="h-16" />
-          <div className="font-bold underline">{master.ppk.nama}</div>
+          <div>{master.ppk.nama}</div>
           <div>{master.ppk.pangkat}</div>
           <div>NIP {master.ppk.nip}</div>
         </div>
@@ -1203,7 +1203,7 @@ export const Doc7SpekTeknis: React.FC<DocProps> = ({ master, transaction }) => {
           <div>selaku</div>
           <div>Pejabat Pembuat Komitmen</div>
           <div className="h-14" />
-          <div className="font-bold underline">{master.ppk.nama}</div>
+          <div>{master.ppk.nama}</div>
           <div>{master.ppk.pangkat}</div>
           <div>NIP {master.ppk.nip}</div>
         </div>
@@ -1351,7 +1351,7 @@ export const Doc8RiwayatSurvei: React.FC<DocProps> = ({
           <div>selaku</div>
           <div>Pejabat Pembuat Komitmen</div>
           <div className="h-12" />
-          <div className="font-bold underline">{master.ppk.nama}</div>
+          <div>{master.ppk.nama}</div>
           <div>{master.ppk.pangkat}</div>
           <div>NIP {master.ppk.nip}</div>
         </div>

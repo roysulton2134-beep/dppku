@@ -671,8 +671,6 @@ function createPPKSignatureTable(
   rightParagraphs.push(p('', { spacingAfter: 520 }));
   rightParagraphs.push(
     p(master.ppk.nama, {
-      bold: true,
-      underline: true,
       size: 19,
       spacingAfter: 10,
     })
@@ -1425,7 +1423,7 @@ export async function exportProcurementToDocx(
       ],
     }),
     p(
-      'Bersama ini dilampirkan dokumen-dokumen dan data-data kelengkapan proses lelang sebagaimana terlampir.',
+      'Bersama ini dilampirkan dokumen-dokumen dan data-data kelengkapan proses pengadaan sebagaimana terlampir.',
       {
         size: 21,
         align: AlignmentType.BOTH,
@@ -1461,8 +1459,6 @@ export async function exportProcurementToDocx(
                 p('Selaku', { size: 21, spacingAfter: 15 }),
                 p('Pejabat Pembuat Komitmen', { size: 21, spacingAfter: 560 }),
                 p(master.ppk.nama, {
-                  bold: true,
-                  underline: true,
                   size: 21,
                   spacingAfter: 15,
                 }),
@@ -1645,8 +1641,6 @@ export async function exportProcurementToDocx(
                 sigPlaceTable,
                 p(jabatanKadis, { size: 20, spacingBefore: 60, spacingAfter: 520 }),
                 p(ppk.nama, {
-                  bold: true,
-                  underline: true,
                   size: 20,
                   spacingAfter: 10,
                 }),
