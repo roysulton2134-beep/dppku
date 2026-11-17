@@ -30,6 +30,7 @@ import {
 } from '../../services/firebase';
 import { formatRupiahDoc } from '../../utils/terbilang';
 import { computeProcurementSummary } from '../../utils/calculations';
+import { migrateTransactionPreviewHtml } from '../../utils/previewHtmlMigration';
 
 interface RekapPengadaanModalProps {
   isOpen: boolean;
@@ -93,17 +94,37 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
 
   // Load drafts on mount or when modal opens
   const loadDraftsList = async () => {
-    // 1. Ambil dari LocalStorage terlebih dahulu (respons instan)
+    // 1. Ambil dari LocalStorage terlebih dahulu (respons instan) + migrasi HTML preview lama
     const localRaw = localStorage.getItem('dpp_dispora_saved_drafts_v1');
-    const localList: SavedDraft[] = localRaw ? JSON.parse(localRaw) : [];
+    const parsedLocal: SavedDraft[] = localRaw ? JSON.parse(localRaw) : [];
+    let localChanged = false;
+    const localList = parsedLocal.map((d) => {
+      const migrated = migrateTransactionPreviewHtml(d.transaction);
+      if (migrated.changed) {
+        localChanged = true;
+        return { ...d, transaction: migrated.transaction };
+      }
+      return d;
+    });
     const sortedLocal = sortDraftsList(localList);
-    setDrafts(sortedLocal);
+    if (localChanged) {
+      persistDrafts(sortedLocal);
+    } else {
+      setDrafts(sortedLocal);
+    }
 
     // 2. Ambil dari Firebase Firestore (sinkronisasi online di latar belakang)
     setIsLoading(true);
     try {
-      const remoteList = await fetchRemoteDrafts();
-      if (remoteList && remoteList.length > 0) {
+      const rawRemoteList = await fetchRemoteDrafts();
+      if (rawRemoteList && rawRemoteList.length > 0) {
+        const remoteList = rawRemoteList.map((rem) => {
+          const migrated = migrateTransactionPreviewHtml(rem.transaction);
+          return migrated.changed
+            ? { ...rem, transaction: migrated.transaction }
+            : rem;
+        });
+
         // Gabungkan remote & local (gunakan versi dengan waktu simpan terbaru jika id sama)
         const localMap = new Map(sortedLocal.map((x) => [x.id, x]));
         const remoteIds = new Set(remoteList.map((x) => x.id));
@@ -178,7 +199,8 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
   const handleSaveCurrentTransaction = async (asNewCopy = false) => {
     setIsSaving(true);
     try {
-      const summary = computeProcurementSummary(currentTransaction);
+      const cleanTransaction = migrateTransactionPreviewHtml(currentTransaction).transaction;
+      const summary = computeProcurementSummary(cleanTransaction);
       const isUpdating = !asNewCopy && Boolean(matchedExistingDraft);
 
       let targetId: string;
@@ -189,10 +211,10 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
         title =
           saveTitleInput.trim() ||
           matchedExistingDraft.title ||
-          `${currentTransaction.kodeRUP || 'DPP'} - ${currentTransaction.namaPaket.slice(0, 50)}`;
+          `${cleanTransaction.kodeRUP || 'DPP'} - ${cleanTransaction.namaPaket.slice(0, 50)}`;
       } else {
         targetId = `pengadaan-${Date.now()}`;
-        const defaultTitle = `${currentTransaction.kodeRUP || 'DPP'} - ${currentTransaction.namaPaket.slice(0, 50)}`;
+        const defaultTitle = `${cleanTransaction.kodeRUP || 'DPP'} - ${cleanTransaction.namaPaket.slice(0, 50)}`;
         title = saveTitleInput.trim() || (asNewCopy ? `${defaultTitle} (Salinan)` : defaultTitle);
       }
 
@@ -200,20 +222,20 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
         id: targetId,
         title,
         savedAt: new Date().toISOString(),
-        transaction: currentTransaction,
+        transaction: cleanTransaction,
         master: currentMaster,
-        nomorDPP: currentTransaction.nomorDPP,
-        namaPaket: currentTransaction.namaPaket,
-        tahunAnggaran: currentTransaction.tahunAnggaran,
+        nomorDPP: cleanTransaction.nomorDPP,
+        namaPaket: cleanTransaction.namaPaket,
+        tahunAnggaran: cleanTransaction.tahunAnggaran,
         sumberDana:
-          currentTransaction.sumberDanaAPBD ||
-          currentTransaction.sumberDanaSuratPermohonan ||
+          cleanTransaction.sumberDanaAPBD ||
+          cleanTransaction.sumberDanaSuratPermohonan ||
           'APBD',
         totalPagu: summary.totalPagu,
         totalHPS: summary.totalPenetapan,
         totalKontrak: summary.totalNilaiKontrak,
-        itemCount: currentTransaction.items.length,
-        penyediaNama: currentTransaction.kontrak?.namaPerusahaan || '-',
+        itemCount: cleanTransaction.items.length,
+        penyediaNama: cleanTransaction.kontrak?.namaPerusahaan || '-',
         isOnline: false,
       };
 
@@ -345,7 +367,12 @@ export const RekapPengadaanModal: React.FC<RekapPengadaanModalProps> = ({
     try {
       let count = 0;
       for (const d of drafts) {
-        await saveRemoteDraft({ ...d, isOnline: true });
+        const cleanDraft: SavedDraft = {
+          ...d,
+          isOnline: true,
+          transaction: migrateTransactionPreviewHtml(d.transaction).transaction,
+        };
+        await saveRemoteDraft(cleanDraft);
         count++;
       }
       await loadDraftsList();

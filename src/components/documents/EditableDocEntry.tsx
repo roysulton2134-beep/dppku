@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { migratePreviewDocumentHtml } from '../../utils/previewHtmlMigration';
 
 interface EditableDocEntryProps {
   docId: string;
@@ -207,6 +208,14 @@ export const EditableDocEntry: React.FC<EditableDocEntryProps> = ({
     const editorEl = editorRef.current;
     if (!sourceEl || !editorEl) return;
 
+    const effectiveCustomHtml = customHtml
+      ? migratePreviewDocumentHtml(docId, customHtml)
+      : undefined;
+    const effectiveCustomBaseHtml = customBaseHtml
+      ? migratePreviewDocumentHtml(docId, customBaseHtml)
+      : undefined;
+    const htmlWasMigrated = Boolean(customHtml && effectiveCustomHtml !== customHtml);
+
     tagSourceImages(sourceEl);
     const currentSourceSerialized = serializeEditorHtml(sourceEl, sourceEl);
 
@@ -221,11 +230,19 @@ export const EditableDocEntry: React.FC<EditableDocEntryProps> = ({
         debounceTimerRef.current = null;
       }
 
-      if (customHtml) {
-        editorEl.innerHTML = hydrateEditorHtml(customHtml, sourceEl);
-        if (customBaseHtml && customBaseHtml !== currentSourceSerialized) {
-          syncSourceChangesIntoEditedDom(customBaseHtml, sourceEl, editorEl);
-          const updatedCustom = serializeEditorHtml(editorEl, sourceEl);
+      if (effectiveCustomHtml) {
+        editorEl.innerHTML = hydrateEditorHtml(effectiveCustomHtml, sourceEl);
+        if (
+          htmlWasMigrated ||
+          (effectiveCustomBaseHtml && effectiveCustomBaseHtml !== currentSourceSerialized)
+        ) {
+          if (effectiveCustomBaseHtml && effectiveCustomBaseHtml !== currentSourceSerialized) {
+            syncSourceChangesIntoEditedDom(effectiveCustomBaseHtml, sourceEl, editorEl);
+          }
+          const updatedCustom = migratePreviewDocumentHtml(
+            docId,
+            serializeEditorHtml(editorEl, sourceEl)
+          );
           lastAppliedCustomHtmlRef.current = updatedCustom;
           lastSourceHtmlRef.current = currentSourceSerialized;
           onUpdateCustomHtmlRef.current(docId, updatedCustom, currentSourceSerialized);
@@ -236,17 +253,17 @@ export const EditableDocEntry: React.FC<EditableDocEntryProps> = ({
       }
 
       lastSourceHtmlRef.current = currentSourceSerialized;
-      lastAppliedCustomHtmlRef.current = customHtml;
+      lastAppliedCustomHtmlRef.current = effectiveCustomHtml;
       return;
     }
 
-    if (customHtml !== lastAppliedCustomHtmlRef.current && !isDirtyRef.current) {
-      if (customHtml) {
-        editorEl.innerHTML = hydrateEditorHtml(customHtml, sourceEl);
+    if (effectiveCustomHtml !== lastAppliedCustomHtmlRef.current && !isDirtyRef.current) {
+      if (effectiveCustomHtml) {
+        editorEl.innerHTML = hydrateEditorHtml(effectiveCustomHtml, sourceEl);
       } else {
         editorEl.innerHTML = sourceEl.innerHTML;
       }
-      lastAppliedCustomHtmlRef.current = customHtml;
+      lastAppliedCustomHtmlRef.current = effectiveCustomHtml;
       lastSourceHtmlRef.current = currentSourceSerialized;
       return;
     }
@@ -255,11 +272,14 @@ export const EditableDocEntry: React.FC<EditableDocEntryProps> = ({
       const prevSourceSerialized = lastSourceHtmlRef.current;
       lastSourceHtmlRef.current = currentSourceSerialized;
 
-      if (!customHtml && !isDirtyRef.current) {
+      if (!effectiveCustomHtml && !isDirtyRef.current) {
         editorEl.innerHTML = sourceEl.innerHTML;
       } else {
         syncSourceChangesIntoEditedDom(prevSourceSerialized, sourceEl, editorEl);
-        const updatedCustom = serializeEditorHtml(editorEl, sourceEl);
+        const updatedCustom = migratePreviewDocumentHtml(
+          docId,
+          serializeEditorHtml(editorEl, sourceEl)
+        );
         lastAppliedCustomHtmlRef.current = updatedCustom;
         onUpdateCustomHtmlRef.current(docId, updatedCustom, currentSourceSerialized);
       }

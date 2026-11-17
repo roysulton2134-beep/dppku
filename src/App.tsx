@@ -63,6 +63,7 @@ import { getFirestoreInstance, saveRemoteDraft } from './services/firebase';
 import { exportProcurementToDocx } from './utils/exportDocx';
 import { formatRupiahDoc } from './utils/terbilang';
 import { cleanDoubleNumber, extractSeqNo } from './utils/documentNumbers';
+import { migrateCustomPreviewMap } from './utils/previewHtmlMigration';
 
 const LS_MASTER_KEY = 'dpp_dispora_master_v1';
 const LS_TX_KEY = 'dpp_dispora_tx_v1';
@@ -207,14 +208,8 @@ function normalizeTransactionData(
       ...DEFAULT_TRANSACTION_DATA.kontrak,
       ...(raw.kontrak || {}),
     },
-    customPreviewHtml:
-      raw.customPreviewHtml && typeof raw.customPreviewHtml === 'object'
-        ? { ...raw.customPreviewHtml }
-        : {},
-    customPreviewBaseHtml:
-      raw.customPreviewBaseHtml && typeof raw.customPreviewBaseHtml === 'object'
-        ? { ...raw.customPreviewBaseHtml }
-        : {},
+    customPreviewHtml: migrateCustomPreviewMap(raw.customPreviewHtml),
+    customPreviewBaseHtml: migrateCustomPreviewMap(raw.customPreviewBaseHtml),
   };
 
   // Migrasi otomatis kategori legacy 'Bahan untuk Kegiatan Kantor-Perabot Kantor'
@@ -577,7 +572,14 @@ export function App() {
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>(() => {
     try {
       const saved = localStorage.getItem(LS_DRAFTS_KEY);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed)
+        ? parsed.map((d: SavedDraft) => ({
+            ...d,
+            transaction: normalizeTransactionData(d.transaction),
+          }))
+        : [];
     } catch {
       return [];
     }
